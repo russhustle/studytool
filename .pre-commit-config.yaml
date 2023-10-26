@@ -2,7 +2,7 @@
 repos:
 # a set of useful Python-based pre-commit hooks
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       # supported hooks: https://pre-commit.com/hooks.html
     - id: trailing-whitespace
@@ -17,7 +17,7 @@ repos:
     - id: detect-private-key
 
 -   repo: https://github.com/ambv/black
-    rev: 23.9.1
+    rev: 23.10.1
     hooks:
     - id: black
 -   repo: https://github.com/pycqa/flake8
@@ -36,6 +36,6 @@ repos:
 
 # shellcheck-py for linting shell files
 -   repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.5
+    rev: v0.9.0.6
     hooks:
       - id: shellcheck
