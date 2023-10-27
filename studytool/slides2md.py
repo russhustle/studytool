@@ -26,7 +26,7 @@ class Slide2md:
         """Convert PDF to images"""
         images = convert_from_path(pdf_path=pdf_path, dpi=dpi)
         pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
-        for i, image in enumerate(images):
+        for i, image in tqdm(enumerate(images), desc=f"Converting {pdf_name}", total=len(images)):
             image_path = os.path.join(self.imgs_folder, pdf_name, f"{i+1:03}.png")
             image.save(fp=image_path)
 
@@ -60,7 +60,9 @@ class Slide2md:
 
     def run(self):
         """Run the slide2md script."""
-        for pdf in tqdm(os.listdir(self.slides_folder)):
+        # Find the PDFs not yet converted
+        pdfs_not_converted = []    
+        for pdf in os.listdir(self.slides_folder):
             pdf_path = os.path.join(self.slides_folder, pdf)
             pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
             img_folder = os.path.join(self.imgs_folder, pdf_name)
@@ -68,17 +70,27 @@ class Slide2md:
             if os.path.exists(img_folder):
                 continue
             else:
+                pdfs_not_converted.append(pdf)
+        
+        if pdfs_not_converted == []:
+            print("All slides converted!")
+        
+        else:
+            for pdf in pdfs_not_converted:
+                pdf_path = os.path.join(self.slides_folder, pdf)
+                pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
+                img_folder = os.path.join(self.imgs_folder, pdf_name)
                 os.makedirs(img_folder)
                 self.pdf2image(pdf_path)
                 self.create_md(pdf_name)
                 self.update_index_yaml()
 
-        self.update_index_yaml()
-        print("Done!")
+            self.update_index_yaml()
+            print("Done!")
 
 
 def main(
-    slide_fodler: str = typer.Argument(...),
+    slide_fodler: str = typer.Argument(..., help="Path to the course folder."),
 ):
     """Convert slides to markdown."""
     slide2md = Slide2md(slide_fodler)

@@ -160,5 +160,7 @@ cython_debug/
 #.idea/
 
 # Ignore PDF files
-courses/*/slides/*.pdf
-courses/
+tinyml-mit-2023/*
+
+# Except for the slides folder
+!tinyml-mit-2023/slides/
