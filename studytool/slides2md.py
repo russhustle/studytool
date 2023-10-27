@@ -1,7 +1,6 @@
 import glob
 import os
-
-import typer
+from pathlib import Path
 from pdf2image import convert_from_path
 from tqdm import tqdm
 
@@ -9,7 +8,7 @@ from tqdm import tqdm
 class Slide2md:
     def __init__(self, course_folder: str):
         """Initialize"""
-        self.course_folder = os.path.abspath(course_folder)
+        self.course_folder = Path(course_folder)
         self.slides_folder = os.path.join(self.course_folder, "slides")
         self.imgs_folder = os.path.join(self.course_folder, "imgs")
         self.index_file = os.path.join(self.course_folder, "README.md")
@@ -61,7 +60,7 @@ class Slide2md:
     def run(self):
         """Run the slide2md script."""
         # Find the PDFs not yet converted
-        pdfs_not_converted = []    
+        pdfs_not_converted = []
         for pdf in os.listdir(self.slides_folder):
             pdf_path = os.path.join(self.slides_folder, pdf)
             pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
@@ -71,10 +70,10 @@ class Slide2md:
                 continue
             else:
                 pdfs_not_converted.append(pdf)
-        
+
         if pdfs_not_converted == []:
             print("All slides converted!")
-        
+
         else:
             for pdf in pdfs_not_converted:
                 pdf_path = os.path.join(self.slides_folder, pdf)
@@ -87,15 +86,3 @@ class Slide2md:
 
             self.update_index_yaml()
             print("Done!")
-
-
-def main(
-    slide_fodler: str = typer.Argument(..., help="Path to the course folder."),
-):
-    """Convert slides to markdown."""
-    slide2md = Slide2md(slide_fodler)
-    slide2md.run()
-
-
-if __name__ == "__main__":
-    typer.run(main)
