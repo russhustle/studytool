@@ -1,2 +1,2 @@
 init:
-	find tinyml-mit-2023 -not -path "tinyml-mit-2023/slides/*" -delete
+	find tinyml -not -path "tinyml/slides/*" -delete

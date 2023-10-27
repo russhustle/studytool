@@ -160,5 +160,5 @@ cython_debug/
 #.idea/
 
 # Ignore PDF files
-tinyml-mit-2023/*
+tinyml/*
 assets/*
