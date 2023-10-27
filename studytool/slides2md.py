@@ -10,10 +10,11 @@ class Slide2md:
         """Initialize"""
         self.course_folder = Path(course_folder)
         self.slides_folder = os.path.join(self.course_folder, "slides")
-        self.imgs_folder = os.path.join(self.course_folder, "imgs")
-        self.index_file = os.path.join(self.course_folder, "README.md")
+        self.docs_folder = os.path.join(self.course_folder, "docs")
+        self.imgs_folder = os.path.join(self.docs_folder, "imgs")
+        self.index_file = os.path.join(self.docs_folder, "README.md")
 
-        for folder in [self.imgs_folder, self.slides_folder]:
+        for folder in [self.imgs_folder, self.slides_folder, self.docs_folder]:
             os.makedirs(folder, exist_ok=True)
 
         if not os.path.exists(self.index_file):
@@ -36,7 +37,7 @@ class Slide2md:
         markdown_images = [
             f"![{os.path.splitext(image)[0]}]({os.path.join('imgs', pdf_name, image)})\n" for image in images
         ]
-        markdown_path = os.path.join(self.course_folder, f"{pdf_name}.md")
+        markdown_path = os.path.join(self.docs_folder, f"{pdf_name}.md")
 
         with open(markdown_path, "w") as f:
             f.write(pdf_name + "\n" + "===" + "\n\n")
