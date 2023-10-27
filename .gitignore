@@ -161,6 +161,4 @@ cython_debug/
 
 # Ignore PDF files
 tinyml-mit-2023/*
-
-# Except for the slides folder
-!tinyml-mit-2023/slides/
+assets/*

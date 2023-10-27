@@ -6,10 +6,10 @@ app = typer.Typer()
 
 @app.command()
 def main(
-    course_folder: str = "./",
+    course: str = typer.Option(default="./", help="Path to course folder."),
 ):
     """Convert slides to markdown."""
-    slide2md = Slide2md(course_folder=course_folder)
+    slide2md = Slide2md(course_folder=course)
     slide2md.run()
 
 

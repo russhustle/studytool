@@ -75,7 +75,7 @@ class Slide2md:
             print("All slides converted!")
 
         else:
-            for pdf in pdfs_not_converted:
+            for pdf in sorted(pdfs_not_converted):
                 pdf_path = os.path.join(self.slides_folder, pdf)
                 pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
                 img_folder = os.path.join(self.imgs_folder, pdf_name)
