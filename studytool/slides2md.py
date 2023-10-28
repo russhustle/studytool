@@ -1,6 +1,7 @@
 import glob
 import os
 from pathlib import Path
+
 from pdf2image import convert_from_path
 from tqdm import tqdm
 
@@ -48,10 +49,11 @@ class Slide2md:
         """Update the index.yaml file"""
         self.index_yaml = os.path.join(self.course_folder, "mkdocs.yaml")
         course_name = os.path.basename(self.course_folder)
-        markdown_files = glob.glob(os.path.join(self.course_folder, "*.md"))
+        markdown_files = glob.glob(os.path.join(self.docs_folder, "*.md"))
         markdown_files = sorted([f for f in markdown_files if os.path.basename(f) != "README.md"])
         with open(self.index_yaml, "w") as f:
-            f.write(f"{course_name}:\n")
+            f.write(f"site_name: {course_name}\n\n")
+            f.write("nav:\n")
             f.write("   - Home: README.md\n")
             for markdown_file in markdown_files:
                 markdown_name = os.path.basename(markdown_file).rsplit(".")[0]
@@ -72,6 +74,7 @@ class Slide2md:
             else:
                 pdfs_not_converted.append(pdf)
 
+        # Convert the PDFs
         if pdfs_not_converted == []:
             print("All slides converted!")
 
@@ -83,7 +86,6 @@ class Slide2md:
                 os.makedirs(img_folder)
                 self.pdf2image(pdf_path)
                 self.create_md(pdf_name)
-                self.update_index_yaml()
 
             self.update_index_yaml()
             print("Done!")
