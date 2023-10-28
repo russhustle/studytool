@@ -83,9 +83,9 @@ class Slide2md:
                 pdf_path = os.path.join(self.slides_folder, pdf)
                 pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
                 img_folder = os.path.join(self.imgs_folder, pdf_name)
-                os.makedirs(img_folder)
-                self.pdf2image(pdf_path)
-                self.create_md(pdf_name)
+                os.makedirs(name=img_folder)
+                self.pdf2image(pdf_path=pdf_path)
+                self.create_md(pdf_name=pdf_name)
 
             self.update_index_yaml()
             print("Done!")
