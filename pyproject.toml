@@ -13,6 +13,7 @@ rich = "^13.6.0"
 typer = "^0.9.0"
 tqdm = "^4.66.1"
 youtube-dl = "^2021.12.17"
+pypdf2 = "^3.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
