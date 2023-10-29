@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from pdf2image import convert_from_path
-from tqdm import tqdm
+from rich.progress import track
 
 
 class Slide2md:
@@ -27,7 +27,7 @@ class Slide2md:
         """Convert PDF to images"""
         images = convert_from_path(pdf_path=pdf_path, dpi=dpi)
         pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
-        for i, image in tqdm(enumerate(images), desc=f"Converting {pdf_name}", total=len(images)):
+        for i, image in track(enumerate(images), description=f"Converting {pdf_name}", total=len(images)):
             image_path = os.path.join(self.imgs_folder, pdf_name, f"{i+1:03}.png")
             image.save(fp=image_path)
 
