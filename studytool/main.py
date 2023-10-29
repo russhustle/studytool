@@ -20,7 +20,7 @@ def playlist(
 def course(
     course: str = typer.Argument(
         default="./",
-        help="Path to course folder.",
+        help="Path to the course folder.",
     ),
 ):
     """Convert slides to markdown."""
