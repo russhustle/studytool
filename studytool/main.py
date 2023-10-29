@@ -8,15 +8,6 @@ app = typer.Typer()
 
 
 @app.command()
-def playlist(
-    playlist: str = typer.Argument(default=None, help="Path to YouTube Playlost URL."),
-    playlist_number: int = typer.Option(default=200, help="Number of videos to extract."),
-):
-    """Print YouTube playlist titles."""
-    playlist_titles(url=playlist, number=playlist_number)
-
-
-@app.command()
 def course(
     course: str = typer.Argument(
         default="./",
@@ -35,6 +26,15 @@ def pdfmerge(
 ):
     """Merge PDF files in a directory."""
     merge_pdfs_in_dir(dir_path=dir_path, output_file=output_file)
+
+
+@app.command()
+def playlist(
+    playlist: str = typer.Argument(default=None, help="Path to YouTube Playlost URL."),
+    playlist_number: int = typer.Option(default=200, help="Number of videos to extract."),
+):
+    """Print YouTube playlist titles."""
+    playlist_titles(url=playlist, number=playlist_number)
 
 
 if __name__ == "__main__":
