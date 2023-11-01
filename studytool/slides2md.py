@@ -15,7 +15,7 @@ class Slide2md:
         self.imgs_folder = os.path.join(self.docs_folder, "imgs")
         self.index_file = os.path.join(self.docs_folder, "README.md")
 
-        for folder in [self.imgs_folder, self.slides_folder, self.docs_folder]:
+        for folder in [self.imgs_folder, self.docs_folder]:
             os.makedirs(folder, exist_ok=True)
 
         if not os.path.exists(self.index_file):
