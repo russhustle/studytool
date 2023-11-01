@@ -7,10 +7,10 @@ brew install poppler
 ```
 
 Course
----
+------
 
 ```
-stutytool --course tinyml
+stutytool course tinyml
 ```
 
 Before
@@ -40,10 +40,10 @@ tinyml
 ```
 
 Playlist
----
+--------
 
 ```shell
-studytool --playlist url
+studytool playlist url
 ```
 
 Example
@@ -63,4 +63,3 @@ The Worst Financial Mistake You Can Make
 How Much Money Is Enough? The Story Of The Mexican Fisherman
 The 4 Hour Work Week by Tim Ferriss (animated book summary) - Escape The 9-5
 ```
-

@@ -14,7 +14,11 @@ def course(
         help="Path to the course folder.",
     ),
 ):
-    """Convert slides to markdown."""
+    """Convert slides to markdown.
+    
+    Example:
+        studytool course <course_folder>
+    """
     slide2md = Slide2md(course_folder=course)
     slide2md.run()
 
@@ -24,7 +28,11 @@ def pdfmerge(
     dir_path: str = typer.Argument(default=None, help="Path to the directory"),
     output_file: str = typer.Option(default="merged_pdf.pdf", help="Merged PDF"),
 ):
-    """Merge PDF files in a directory."""
+    """Merge PDF files in a directory.
+    
+    Example:
+        studytool pdfmerge <directory_path>
+    """
     merge_pdfs_in_dir(dir_path=dir_path, output_file=output_file)
 
 
@@ -33,7 +41,11 @@ def playlist(
     playlist: str = typer.Argument(default=None, help="Path to YouTube Playlost URL."),
     playlist_number: int = typer.Option(default=200, help="Number of videos to extract."),
 ):
-    """Print YouTube playlist titles."""
+    """Print YouTube playlist titles.
+    
+    Example:
+        studytool playlist <url>
+    """
     playlist_titles(url=playlist, number=playlist_number)
 
 
