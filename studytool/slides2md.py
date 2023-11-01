@@ -57,7 +57,8 @@ class Slide2md:
             f.write("   - Home: README.md\n")
             for markdown_file in markdown_files:
                 markdown_name = os.path.basename(markdown_file).rsplit(".")[0]
-                f.write(f"   - {markdown_name}: {markdown_name}.md\n")
+                title_markdown_name = markdown_name.replace("-", " ").title()
+                f.write(f"   - {title_markdown_name}: {markdown_name}.md\n")
             f.close()
 
     def run(self):

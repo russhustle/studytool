@@ -13,14 +13,21 @@ def course(
         default="./",
         help="Path to the course folder.",
     ),
+    update_yaml_only: bool = typer.Option(default=False, help="Update Markdown Only")
 ):
     """Convert slides to markdown.
     
     Example:
         studytool course <course_folder>
+        studytool course <course_folder> --update-yaml-only
     """
     slide2md = Slide2md(course_folder=course)
-    slide2md.run()
+    
+    if update_yaml_only:
+        slide2md.update_index_yaml()
+
+    else:
+        slide2md.run()
 
 
 @app.command()
