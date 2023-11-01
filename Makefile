@@ -5,10 +5,9 @@ init:
 publish:
 	poetry version patch
 	poetry lock
-	git commit -m -a "update"
+	git commit -a -m "update"
 	git push origin
-	version=$(poetry version --short)
-	git tag "v$version"
-	git push origin "v$version"
-
+	$(eval VERSION=$(shell poetry version --short))
+	git tag "v$(VERSION)"
+	git push origin "v$(VERSION)"
 	poetry publish --build
