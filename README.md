@@ -1,10 +1,18 @@
-# Study Tools
+# studytool
 
-The `pdf2image` library needs `poplar` installed.
+[![GitHub version](https://badge.fury.io/gh/russhustle%2Fstudytool.svg)](https://badge.fury.io/gh/russhustle%2Fstudytool)[![PyPI version](https://badge.fury.io/py/studytool.svg)](https://badge.fury.io/py/studytool)
+
+## Installation
 
 ```shell
-brew install poppler
+pip install studytool
 ```
+
+> The `pdf2image` library needs `poppler` installed.
+>
+> ```shell
+> brew install poppler
+> ```
 
 Course
 ------
