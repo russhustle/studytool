@@ -2,6 +2,11 @@
 
 [![GitHub version](https://badge.fury.io/gh/russhustle%2Fstudytool.svg)](https://badge.fury.io/gh/russhustle%2Fstudytool) [![PyPI version](https://badge.fury.io/py/studytool.svg)](https://badge.fury.io/py/studytool)
 
+## To do
+
+- Documentation
+- Testing
+
 ## Installation
 
 ```shell

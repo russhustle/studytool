@@ -13,7 +13,7 @@ def course(
         default="./",
         help="Path to the course folder.",
     ),
-    update_yaml_only: bool = typer.Option(default=False, help="Update Markdown Only")
+    update_yaml_only: bool = typer.Option(default=False, help="Update MKDocs YAML Only")
 ):
     """Convert slides to markdown.
     
