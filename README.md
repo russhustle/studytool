@@ -1,6 +1,6 @@
-# studytool
+# studytool 💼
 
-[![GitHub version](https://badge.fury.io/gh/russhustle%2Fstudytool.svg)](https://badge.fury.io/gh/russhustle%2Fstudytool)[![PyPI version](https://badge.fury.io/py/studytool.svg)](https://badge.fury.io/py/studytool)
+[![GitHub version](https://badge.fury.io/gh/russhustle%2Fstudytool.svg)](https://badge.fury.io/gh/russhustle%2Fstudytool) [![PyPI version](https://badge.fury.io/py/studytool.svg)](https://badge.fury.io/py/studytool)
 
 ## Installation
 

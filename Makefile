@@ -3,6 +3,10 @@ init:
 	rm -rf dist
 	find tinyml -not -path "tinyml/slides/*" -delete
 
+commit:
+	git commit -a -m "Update"
+	git push origin
+
 push:
 	poetry version patch
 	poetry lock
