@@ -13,16 +13,18 @@ def course(
         default="./",
         help="Path to the course folder.",
     ),
-    update_yaml_only: bool = typer.Option(default=False, help="Update MKDocs YAML Only")
+    update_yaml_only: bool = typer.Option(default=False, help="Update MKDocs YAML Only"),
+    dpi: int = typer.Option(default=100, help="DPI for PDF to image conversion"),
 ):
     """Convert slides to markdown.
-    
+
     Example:
         studytool course <course_folder>
         studytool course <course_folder> --update-yaml-only
+        studytool course <course_folder> --dpi 200
     """
-    slide2md = Slide2md(course_folder=course)
-    
+    slide2md = Slide2md(course_folder=course, dpi=dpi)
+
     if update_yaml_only:
         slide2md.update_index_yaml()
 
@@ -36,7 +38,7 @@ def pdfmerge(
     output_file: str = typer.Option(default="merged_pdf.pdf", help="Merged PDF"),
 ):
     """Merge PDF files in a directory.
-    
+
     Example:
         studytool pdfmerge <directory_path>
     """
@@ -49,7 +51,7 @@ def playlist(
     playlist_number: int = typer.Option(default=200, help="Number of videos to extract."),
 ):
     """Print YouTube playlist titles.
-    
+
     Example:
         studytool playlist <url>
     """

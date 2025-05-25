@@ -7,13 +7,16 @@ from rich.progress import track
 
 
 class Slide2md:
-    def __init__(self, course_folder: str):
+    """Convert slides to markdown."""
+
+    def __init__(self, course_folder: str, dpi: int = 100):
         """Initialize"""
         self.course_folder = Path(course_folder)
         self.slides_folder = os.path.join(self.course_folder, "slides")
         self.docs_folder = os.path.join(self.course_folder, "docs")
         self.imgs_folder = os.path.join(self.docs_folder, "imgs")
         self.index_file = os.path.join(self.docs_folder, "README.md")
+        self.dpi = dpi
 
         for folder in [self.imgs_folder, self.docs_folder]:
             os.makedirs(folder, exist_ok=True)
@@ -23,12 +26,12 @@ class Slide2md:
                 f.write("Course Index" + "\n" + "===" + "\n\n")
                 f.close()
 
-    def pdf2image(self, pdf_path, dpi: int = 100) -> None:
+    def pdf_to_image(self, pdf_path) -> None:
         """Convert PDF to images"""
-        images = convert_from_path(pdf_path=pdf_path, dpi=dpi)
+        images = convert_from_path(pdf_path=pdf_path, dpi=self.dpi)
         pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
         for i, image in track(enumerate(images), description=f"Converting {pdf_name}", total=len(images)):
-            image_path = os.path.join(self.imgs_folder, pdf_name, f"{i+1:03}.png")
+            image_path = os.path.join(self.imgs_folder, pdf_name, f"{i+1:03}.jpg")
             image.save(fp=image_path)
 
     def create_md(self, pdf_name: str) -> None:
@@ -85,7 +88,7 @@ class Slide2md:
                 pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
                 img_folder = os.path.join(self.imgs_folder, pdf_name)
                 os.makedirs(name=img_folder)
-                self.pdf2image(pdf_path=pdf_path)
+                self.pdf_to_image(pdf_path=pdf_path)
                 self.create_md(pdf_name=pdf_name)
 
             self.update_index_yaml()

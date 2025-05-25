@@ -3,6 +3,10 @@ init:
 	rm -rf dist
 	find tinyml -not -path "tinyml/slides/*" -delete
 
+clean:
+	find . -name "__pycache__" -exec rm -rf {} \;
+	find . -name ".DS_Store" -exec rm -rf {} \;
+
 commit:
 	git commit -a -m "Update"
 	git push origin

@@ -14,6 +14,8 @@ typer = "^0.9.0"
 tqdm = "^4.66.1"
 youtube-dl = "^2021.12.17"
 pypdf2 = "^3.0.1"
+pytube = "^15.0.0"
+yt-dlp = "^2023.12.30"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -37,6 +39,7 @@ exclude = '''
 | _build
 | buck-out
 | build
+| \.DS_Store
 )/
 '''
 
