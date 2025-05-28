@@ -3,6 +3,7 @@ import typer
 from .num_to_image_path import num2img_path
 from .pdf_merge import merge_pdfs_in_dir
 from .slides2md import Slide2md
+from .trad_to_simp import convert_trad_to_simp
 from .youtube_playlist import playlist_titles
 
 app = typer.Typer()
@@ -82,6 +83,22 @@ def imgpath(
         while True:
             time.sleep(interval)
             num2img_path(md_path=md_path, pattern=pattern)
+
+
+@app.command()
+def t2s(
+    file_path: str = typer.Argument(
+        ..., help="Path to the Markdown or text file to convert from Traditional to Simplified Chinese."
+    ),
+):
+    """
+    Convert Traditional Chinese text in a Markdown or text file to Simplified Chinese.
+    The file is overwritten with the converted content.
+
+    Example:
+        studytool t2s <path_to_file.md_or_txt>
+    """
+    convert_trad_to_simp(file_path=file_path)
 
 
 if __name__ == "__main__":
