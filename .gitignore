@@ -163,3 +163,4 @@ cython_debug/
 tinyml/*
 assets/*
 .DS_Store
+temp*

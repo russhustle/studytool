@@ -1,5 +1,8 @@
 {
   "editor.formatOnSave": true,
   "prettier.tabWidth": 2,
-  "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+  "vsintellicode.modify.editor.suggestSelection": "enabled",
+  "python.terminal.activateEnvironment": true,
+  "python.venvFolders": ["envs", ".pyenv", ".direnv", ".virtualenvs", ".venv"]
 }
