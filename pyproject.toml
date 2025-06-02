@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "studytool"
-version = "0.1.12"
+version = "0.1.13"
 description = "Command lines for study"
 authors = ["Sihan"]
 license = "MIT"
@@ -17,6 +17,8 @@ pypdf2 = "^3.0.1"
 pytube = "^15.0.0"
 yt-dlp = "^2025.5.22"
 opencc = "^1.1.9"
+requests = "^2.32.3"
+beautifulsoup4 = "^4.13.4"
 
 
 [tool.poetry.group.dev.dependencies]

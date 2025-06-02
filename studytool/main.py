@@ -1,5 +1,9 @@
+import re
+from pathlib import Path
+
 import typer
 
+from .link import get_formatted_link
 from .num_to_image_path import num2img_path
 from .pdf_merge import merge_pdfs_in_dir
 from .slides2md import Slide2md
@@ -99,6 +103,69 @@ def t2s(
         studytool t2s <path_to_file.md_or_txt>
     """
     convert_trad_to_simp(file_path=file_path)
+
+
+@app.command()
+def link(
+    url: str = typer.Argument(None, help="URL to format as markdown link"),
+    file: str = typer.Option(None, help="Path to file containing URLs (one per line)"),
+    sort: str = typer.Option("asc", help="Sort order: 'asc' (ascending) or 'desc' (descending)"),
+):
+    """Format URL(s) as markdown links with titles.
+
+    Example:
+        studytool link https://example.com
+        studytool link --file urls.txt
+        studytool link --file urls.txt --sort desc
+    """
+    if file:
+        # Process multiple URLs from file
+        file_path = Path(file)
+        if not file_path.exists():
+            typer.echo(f"Error: File {file} not found", err=True)
+            raise typer.Exit(1)
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        # Extract URLs from each line (handle markdown links or plain URLs)
+        urls = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Extract URL from markdown link format [title](url) or plain URL
+            url_match = re.search(r"\((https?://[^\)]+)\)", line)
+            if url_match:
+                urls.append(url_match.group(1))
+            elif line.startswith("http"):
+                urls.append(line)
+
+        # Get formatted links
+        formatted_links = []
+        for url in urls:
+            formatted_link = get_formatted_link(url)
+            formatted_links.append(formatted_link)
+
+        # Sort the formatted links
+        if sort.lower() == "desc":
+            formatted_links.sort(reverse=True)
+        else:
+            formatted_links.sort()
+
+        # Output results
+        for link in formatted_links:
+            typer.echo(f"- {link}")
+
+    elif url:
+        # Process single URL
+        formatted_link = get_formatted_link(url)
+        typer.echo(formatted_link)
+
+    else:
+        typer.echo("Error: Either provide a URL or use --file option", err=True)
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":
