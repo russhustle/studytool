@@ -10,7 +10,6 @@ readme = "README.md"
 python = "^3.12"
 pdf2image = "^1.16.3"
 rich = "^13.6.0"
-typer = "^0.9.0"
 tqdm = "^4.66.1"
 youtube-dl = "^2021.12.17"
 pypdf2 = "^3.0.1"
@@ -19,6 +18,8 @@ yt-dlp = "^2025.5.22"
 opencc = "^1.1.9"
 requests = "^2.32.3"
 beautifulsoup4 = "^4.13.4"
+typer = "^0.16.0"
+click = "^8.2.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -27,7 +28,7 @@ pre-commit = "^3.5.0"
 flake8 = "^6.1.0"
 
 [tool.poetry.scripts]
-studytool = "studytool.main:app"
+stt = "studytool.main:app"
 
 [tool.black]
 line-length = 120

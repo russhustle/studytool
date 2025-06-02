@@ -19,11 +19,10 @@ pip install studytool
 > brew install poppler
 > ```
 
-Course
-------
+## Course
 
 ```
-stutytool course tinyml
+stt course tinyml
 ```
 
 Before
@@ -52,11 +51,10 @@ tinyml
     └── lec02.pdf
 ```
 
-Playlist
---------
+## Playlist
 
 ```shell
-studytool playlist url
+stt playlist url
 ```
 
 Example
@@ -64,7 +62,7 @@ Example
 [Example playlist](https://youtube.com/playlist?list=PL7BBhk26UQOsO1ZqGkD9GjAnNmKAUNr9k&si=miGOUCdJd7bfCS7o)
 
 ```shell
-studytool --playlist https://youtube.com/playlist?list=PL7BBhk26UQOsO1ZqGkD9GjAnNmKAUNr9k&si=miGOUCdJd7bfCS7o
+stt --playlist https://youtube.com/playlist?list=PL7BBhk26UQOsO1ZqGkD9GjAnNmKAUNr9k&si=miGOUCdJd7bfCS7o
 ```
 
 Output
