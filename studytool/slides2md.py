@@ -31,7 +31,7 @@ class Slide2md:
         images = convert_from_path(pdf_path=pdf_path, dpi=self.dpi)
         pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
         for i, image in track(enumerate(images), description=f"Converting {pdf_name}", total=len(images)):
-            image_path = os.path.join(self.imgs_folder, pdf_name, f"{i+1:03}.jpg")
+            image_path = os.path.join(self.imgs_folder, pdf_name, f"{i + 1:03}.jpg")
             image.save(fp=image_path)
 
     def create_md(self, pdf_name: str) -> None:

@@ -62,7 +62,7 @@ Example
 [Example playlist](https://youtube.com/playlist?list=PL7BBhk26UQOsO1ZqGkD9GjAnNmKAUNr9k&si=miGOUCdJd7bfCS7o)
 
 ```shell
-stt --playlist https://youtube.com/playlist?list=PL7BBhk26UQOsO1ZqGkD9GjAnNmKAUNr9k&si=miGOUCdJd7bfCS7o
+stt playlist https://youtube.com/playlist?list=PL7BBhk26UQOsO1ZqGkD9GjAnNmKAUNr9k&si=miGOUCdJd7bfCS7o
 ```
 
 Output

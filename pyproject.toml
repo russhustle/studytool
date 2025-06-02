@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "studytool"
-version = "0.1.13"
-description = "Command lines for study"
-authors = ["Sihan"]
+version = "0.1.14"
+description = "A comprehensive command-line study toolkit for PDF processing, video downloading, and text conversion."
+authors = ["Sihan A"]
 license = "MIT"
 readme = "README.md"
 
@@ -20,6 +20,7 @@ requests = "^2.32.3"
 beautifulsoup4 = "^4.13.4"
 typer = "^0.16.0"
 click = "^8.2.1"
+pymupdf = "^1.26.0"
 
 
 [tool.poetry.group.dev.dependencies]

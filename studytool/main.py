@@ -2,40 +2,35 @@ import re
 from pathlib import Path
 
 import typer
+from rich.console import Console
 
 from .link import get_formatted_link
 from .num_to_image_path import num2img_path
+from .pdf2text import extract_urls_from_pdf_folder, pdf_to_markdown
 from .pdf_merge import merge_pdfs_in_dir
 from .slides2md import Slide2md
 from .trad_to_simp import convert_trad_to_simp
 from .youtube_playlist import playlist_titles
 
 app = typer.Typer()
+console = Console()
 
 
 @app.command()
 def course(
-    course: str = typer.Argument(
-        default="./",
-        help="Path to the course folder.",
-    ),
+    course: str = typer.Argument(default="./", help="Path to the course folder."),
     update_yaml_only: bool = typer.Option(default=False, help="Update MKDocs YAML Only"),
     dpi: int = typer.Option(default=100, help="DPI for PDF to image conversion"),
 ):
-    """Convert slides to markdown.
+    """Process course materials and convert slides to markdown format.
 
-    Example:
-        studytool course <course_folder>
-        studytool course <course_folder> --update-yaml-only
-        studytool course <course_folder> --dpi 200
+    Args:
+        course: Path to the course folder containing slides and materials.
+        update_yaml_only: If True, only updates MKDocs YAML configuration without processing slides.
+        dpi: Resolution for PDF to image conversion (higher values = better quality).
     """
     slide2md = Slide2md(course_folder=course, dpi=dpi)
-
-    if update_yaml_only:
-        slide2md.update_index_yaml()
-
-    else:
-        slide2md.run()
+    slide2md.update_index_yaml() if update_yaml_only else slide2md.run()
 
 
 @app.command()
@@ -43,10 +38,11 @@ def pdfmerge(
     dir_path: str = typer.Argument(default=None, help="Path to the directory"),
     output_file: str = typer.Option(default="merged_pdf.pdf", help="Merged PDF"),
 ):
-    """Merge PDF files in a directory.
+    """Merge all PDF files in a directory into a single PDF file.
 
-    Example:
-        studytool pdfmerge <directory_path>
+    Args:
+        dir_path: Path to the directory containing PDF files to merge.
+        output_file: Name of the output merged PDF file.
     """
     merge_pdfs_in_dir(dir_path=dir_path, output_file=output_file)
 
@@ -56,10 +52,11 @@ def playlist(
     playlist: str = typer.Argument(default=None, help="Path to YouTube Playlost URL."),
     playlist_number: int = typer.Option(default=200, help="Number of videos to extract."),
 ):
-    """Print YouTube playlist titles.
+    """Extract video titles from a YouTube playlist.
 
-    Example:
-        studytool playlist <url>
+    Args:
+        playlist: YouTube playlist URL to process.
+        playlist_number: Maximum number of video titles to extract from the playlist.
     """
     playlist_titles(url=playlist, number=playlist_number)
 
@@ -71,13 +68,16 @@ def imgpath(
     pattern: str = typer.Option(default="、", help="Custom pattern to replace with image paths"),
     once: bool = typer.Option(default=True, help="Run once without continuous monitoring"),
 ):
-    """Convert numbers to image paths in markdown files.
+    """Convert numbered patterns in markdown to image paths.
 
-    Example:
-        studytool imgpath <md_file_path>
-        studytool imgpath <md_file_path> --interval 5
-        studytool imgpath <md_file_path> --pattern "XXX"
-        studytool imgpath <md_file_path> --once
+    This function replaces patterns (like "、") with corresponding image paths
+    in markdown files. Can run once or continuously monitor the file.
+
+    Args:
+        md_path: Path to the markdown file to process.
+        interval: Time in seconds between runs when continuous monitoring is enabled.
+        pattern: Text pattern to replace with image paths.
+        once: If True, runs once; if False, runs continuously with specified interval.
     """
     import time
 
@@ -93,14 +93,12 @@ def imgpath(
 def t2s(
     file_path: str = typer.Argument(
         ..., help="Path to the Markdown or text file to convert from Traditional to Simplified Chinese."
-    ),
+    )
 ):
-    """
-    Convert Traditional Chinese text in a Markdown or text file to Simplified Chinese.
-    The file is overwritten with the converted content.
+    """Convert Traditional Chinese text to Simplified Chinese in a file.
 
-    Example:
-        studytool t2s <path_to_file.md_or_txt>
+    Args:
+        file_path: Path to the markdown or text file containing Traditional Chinese text.
     """
     convert_trad_to_simp(file_path=file_path)
 
@@ -111,15 +109,20 @@ def link(
     file: str = typer.Option(None, help="Path to file containing URLs (one per line)"),
     sort: str = typer.Option("asc", help="Sort order: 'asc' (ascending) or 'desc' (descending)"),
 ):
-    """Format URL(s) as markdown links with titles.
+    """Format URLs as markdown links with automatic title extraction.
 
-    Example:
-        studytool link https://example.com
-        studytool link --file urls.txt
-        studytool link --file urls.txt --sort desc
+    Can process a single URL or multiple URLs from a file. URLs are automatically
+    fetched to extract page titles for properly formatted markdown links.
+
+    Args:
+        url: Single URL to format as a markdown link.
+        file: Path to file containing multiple URLs (one per line).
+        sort: Sort order for multiple URLs - 'asc' for ascending, 'desc' for descending.
+
+    Raises:
+        typer.Exit: If neither URL nor file is provided, or if file doesn't exist.
     """
     if file:
-        # Process multiple URLs from file
         file_path = Path(file)
         if not file_path.exists():
             typer.echo(f"Error: File {file} not found", err=True)
@@ -128,43 +131,112 @@ def link(
         with open(file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
-        # Extract URLs from each line (handle markdown links or plain URLs)
         urls = []
         for line in lines:
             line = line.strip()
             if not line:
                 continue
 
-            # Extract URL from markdown link format [title](url) or plain URL
             url_match = re.search(r"\((https?://[^\)]+)\)", line)
             if url_match:
                 urls.append(url_match.group(1))
             elif line.startswith("http"):
                 urls.append(line)
 
-        # Get formatted links
-        formatted_links = []
-        for url in urls:
-            formatted_link = get_formatted_link(url)
-            formatted_links.append(formatted_link)
+        formatted_links = [get_formatted_link(url) for url in urls]
+        formatted_links.sort(reverse=(sort.lower() == "desc"))
 
-        # Sort the formatted links
-        if sort.lower() == "desc":
-            formatted_links.sort(reverse=True)
-        else:
-            formatted_links.sort()
-
-        # Output results
         for link in formatted_links:
             typer.echo(f"- {link}")
 
     elif url:
-        # Process single URL
-        formatted_link = get_formatted_link(url)
-        typer.echo(formatted_link)
-
+        typer.echo(get_formatted_link(url))
     else:
         typer.echo("Error: Either provide a URL or use --file option", err=True)
+        raise typer.Exit(1)
+
+
+@app.command()
+def pdf2md(
+    pdf_path: str = typer.Argument(..., help="Path to the PDF file"),
+    output: str = typer.Option(None, help="Output markdown file path (optional)"),
+    extract_urls: bool = typer.Option(False, help="Extract URLs from PDF and include in markdown"),
+    url_sort: str = typer.Option("desc", help="Sort order for URLs: 'asc' (ascending) or 'desc' (descending)"),
+):
+    """Convert PDF file to markdown format with optional URL extraction.
+
+    Extracts text content from PDF and converts it to markdown format.
+    Optionally extracts and lists all URLs found in the PDF.
+
+    Args:
+        pdf_path: Path to the PDF file to convert.
+        output: Output path for the markdown file. If not provided, uses PDF name with .md extension.
+        extract_urls: If True, extracts all URLs from the PDF and appends them to the markdown.
+        url_sort: Sort order for extracted URLs - 'asc' for ascending, 'desc' for descending.
+
+    Raises:
+        typer.Exit: If PDF file doesn't exist or conversion fails.
+    """
+    pdf_file = Path(pdf_path)
+    if not pdf_file.exists():
+        console.print(f"[red]Error: PDF file not found: {pdf_path}[/red]")
+        raise typer.Exit(1)
+
+    if not output:
+        output = pdf_file.with_suffix(".md")
+
+    try:
+        content = pdf_to_markdown(pdf_path, output, extract_urls=extract_urls, url_sort=url_sort)
+        console.print(f"[green]✅ Successfully converted PDF to Markdown: {output}[/green]")
+        console.print(f"[blue]📄 Generated {len(content.split())} words[/blue]")
+
+        if extract_urls:
+            url_count = content.count("## Extracted URLs")
+            if url_count > 0:
+                console.print(f"[yellow]🔗 Extracted and sorted URLs ({url_sort} order)[/yellow]")
+            else:
+                console.print("[yellow]🔗 No URLs found in the PDF[/yellow]")
+
+    except Exception as e:
+        console.print(f"[red]Error converting PDF: {str(e)}[/red]")
+        raise typer.Exit(1)
+
+
+@app.command()
+def pdflinks(
+    folder_path: str = typer.Argument(..., help="Path to folder containing PDF files"),
+    output: str = typer.Option("links.md", help="Output markdown file name"),
+    url_sort: str = typer.Option("desc", help="Sort order for URLs: 'asc' (ascending) or 'desc' (descending)"),
+):
+    """Extract all URLs from PDF files in a folder and save to markdown.
+
+    Processes all PDF files in the specified folder, extracts URLs from each,
+    removes duplicates, and saves the sorted list to a markdown file.
+
+    Args:
+        folder_path: Path to folder containing PDF files to process.
+        output: Name of the output markdown file for the extracted URLs.
+        url_sort: Sort order for URLs - 'asc' for ascending, 'desc' for descending.
+
+    Raises:
+        typer.Exit: If folder doesn't exist or URL extraction fails.
+    """
+    try:
+        output_path = extract_urls_from_pdf_folder(folder_path, output, url_sort)
+        console.print("[green]✅ Successfully extracted URLs from PDF files[/green]")
+        console.print(f"[blue]📄 Output saved to: {output_path}[/blue]")
+
+        with open(output_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            match = re.search(r"\*\*Total unique URLs found:\*\* (\d+)", content)
+            if match:
+                url_count = int(match.group(1))
+                console.print(f"[yellow]🔗 Found {url_count} unique URLs ({url_sort} order)[/yellow]")
+            else:
+                console.print(f"[yellow]🔗 URLs extracted and sorted ({url_sort} order)[/yellow]")
+
+    except Exception as e:
+        console.print(f"[red]Error extracting URLs: {str(e)}[/red]")
         raise typer.Exit(1)
 
 
