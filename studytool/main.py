@@ -291,6 +291,11 @@ def ebook2md(
         console.print("Successfully converted EPUB to markdown")
         console.print(f"Markdown files saved to: {output_dir}")
 
+        # Move the EPUB file to the output directory
+        epub_output_path = output_dir / epub_file.name
+        epub_file.rename(epub_output_path)
+        console.print(f"EPUB file moved to: {epub_output_path}")
+
     except Exception as e:
         console.print(f"Error converting EPUB: {str(e)}")
         raise typer.Exit(1)

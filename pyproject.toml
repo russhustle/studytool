@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "studytool"
-version = "0.1.15"
+version = "0.1.16"
 description = "A comprehensive command-line study toolkit for PDF processing, video downloading, and text conversion."
 authors = ["Sihan A"]
 license = "MIT"

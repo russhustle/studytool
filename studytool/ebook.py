@@ -1,12 +1,9 @@
 import os
 import re
-import sys
-import warnings
 
 import ebooklib
 from bs4 import BeautifulSoup
 from ebooklib import epub
-from PIL import Image
 
 
 def epub_to_chapters(epub_path):
@@ -61,7 +58,7 @@ def save_chapters_as_markdown(chapters, output_dir):
         if not safe_title:
             safe_title = f"chapter_{i + 1}"
 
-        filename = f"{i + 1:02d}_{safe_title}.txt"
+        filename = f"{i + 1:02d}_{safe_title}.md"
         soup = BeautifulSoup(html_content, "html.parser")
         markdown_content = f"# {title}\n\n"
 
@@ -139,10 +136,6 @@ def extract_imgs_from_epub(epub_path, output_dir):
                 f.write(image_content)
 
             print(f"Saved image: {image_name}")
-
-
-warnings.filterwarnings("ignore", category=UserWarning)
-warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 def extract_toc(epub_path, output_path=None):
