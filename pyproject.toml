@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "studytool"
-version = "0.1.14"
+version = "0.1.15"
 description = "A comprehensive command-line study toolkit for PDF processing, video downloading, and text conversion."
 authors = ["Sihan A"]
 license = "MIT"
@@ -21,6 +21,7 @@ beautifulsoup4 = "^4.13.4"
 typer = "^0.16.0"
 click = "^8.2.1"
 pymupdf = "^1.26.0"
+ebooklib = "^0.19"
 
 
 [tool.poetry.group.dev.dependencies]
