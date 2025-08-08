@@ -1,11 +1,12 @@
-from pathlib import Path
 import re
+from pathlib import Path
+
+import fitz  # PyMuPDF
 import typer
 from rich.console import Console
 from tqdm import tqdm
 
 from .link import get_formatted_link
-import fitz  # PyMuPDF
 
 app = typer.Typer()
 console = Console()

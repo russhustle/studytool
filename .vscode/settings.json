@@ -4,5 +4,8 @@
   "makefile.configureOnOpen": false,
   "vsintellicode.modify.editor.suggestSelection": "enabled",
   "python.terminal.activateEnvironment": true,
-  "python.venvFolders": ["envs", ".pyenv", ".direnv", ".virtualenvs", ".venv"]
+  "python.venvFolders": ["envs", ".pyenv", ".direnv", ".virtualenvs", ".venv"],
+  "python.testing.pytestArgs": ["studytool"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }

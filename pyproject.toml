@@ -31,7 +31,7 @@ dev = [
 ]
 
 [project.scripts]
-stt = "studytool.main:app"
+stt = "studytool.__init__:app"
 
 [tool.black]
 line-length = 120

@@ -1,12 +1,12 @@
 import glob
 import os
 from pathlib import Path
+from typing import List
 
+import typer
 from pdf2image import convert_from_path
 from rich.progress import track
 
-import typer
-from typing import List
 app = typer.Typer()
 
 
@@ -97,7 +97,6 @@ class Slide2md:
 
             self.update_index_yaml()
             print("Done!")
-
 
 
 @app.command()

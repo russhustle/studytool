@@ -1,5 +1,5 @@
-from opencc import OpenCC
 import typer
+from opencc import OpenCC
 
 app = typer.Typer()
 

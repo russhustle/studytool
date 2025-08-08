@@ -1,6 +1,5 @@
-import youtube_dl
-
 import typer
+import youtube_dl
 
 app = typer.Typer()
 

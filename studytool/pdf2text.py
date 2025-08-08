@@ -2,11 +2,11 @@ import re
 from pathlib import Path
 
 import fitz
+import typer
+from rich.console import Console
 from tqdm import tqdm
 
 from .link import get_formatted_link
-from rich.console import Console
-import typer
 
 app = typer.Typer()
 console = Console()

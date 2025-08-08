@@ -1,13 +1,12 @@
 import os
 import re
+from pathlib import Path
 
 import ebooklib
+import typer
 from bs4 import BeautifulSoup
 from ebooklib import epub
-
 from rich.console import Console
-import typer
-from pathlib import Path
 
 app = typer.Typer()
 console = Console()

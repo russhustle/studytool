@@ -2,9 +2,8 @@ import re
 from pathlib import Path
 
 import requests
-from bs4 import BeautifulSoup
-
 import typer
+from bs4 import BeautifulSoup
 
 app = typer.Typer()
 
