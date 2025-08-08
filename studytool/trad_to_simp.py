@@ -1,4 +1,7 @@
 from opencc import OpenCC
+import typer
+
+app = typer.Typer()
 
 
 def convert_trad_to_simp(file_path: str):
@@ -23,3 +26,17 @@ def convert_trad_to_simp(file_path: str):
         print(f"Error: File not found at '{file_path}'.")
     except Exception as e:
         print(f"An error occurred: {e}")
+
+
+@app.command()
+def t2s(
+    file_path: str = typer.Argument(
+        ..., help="Path to the Markdown or text file to convert from Traditional to Simplified Chinese."
+    )
+):
+    """Convert Traditional Chinese text to Simplified Chinese in a file.
+
+    Args:
+        file_path: Path to the markdown or text file containing Traditional Chinese text.
+    """
+    convert_trad_to_simp(file_path=file_path)

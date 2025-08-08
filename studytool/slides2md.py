@@ -5,6 +5,10 @@ from pathlib import Path
 from pdf2image import convert_from_path
 from rich.progress import track
 
+import typer
+from typing import List
+app = typer.Typer()
+
 
 class Slide2md:
     """Convert slides to markdown."""
@@ -93,3 +97,21 @@ class Slide2md:
 
             self.update_index_yaml()
             print("Done!")
+
+
+
+@app.command()
+def course(
+    course: str = typer.Argument(default="./", help="Path to the course folder."),
+    update_yaml_only: bool = typer.Option(default=False, help="Update MKDocs YAML Only"),
+    dpi: int = typer.Option(default=100, help="DPI for PDF to image conversion"),
+):
+    """Process course materials and convert slides to markdown format.
+
+    Args:
+        course: Path to the course folder containing slides and materials.
+        update_yaml_only: If True, only updates MKDocs YAML configuration without processing slides.
+        dpi: Resolution for PDF to image conversion (higher values = better quality).
+    """
+    slide2md = Slide2md(course_folder=course, dpi=dpi)
+    slide2md.update_index_yaml() if update_yaml_only else slide2md.run()

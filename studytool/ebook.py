@@ -5,6 +5,13 @@ import ebooklib
 from bs4 import BeautifulSoup
 from ebooklib import epub
 
+from rich.console import Console
+import typer
+from pathlib import Path
+
+app = typer.Typer()
+console = Console()
+
 
 def epub_to_chapters(epub_path):
     """
@@ -195,3 +202,63 @@ def extract_toc(epub_path, output_path=None):
     except Exception as e:
         print(f"Error processing EPUB file: {e}")
         return None
+
+
+@app.command()
+def ebook2md(
+    epub_path: str = typer.Argument(..., help="Path to the EPUB file"),
+    output_dir: str = typer.Option(None, help="Output directory for markdown files (optional)"),
+    extract_images: bool = typer.Option(True, help="Extract images from EPUB"),
+    generate_toc: bool = typer.Option(True, help="Generate table of contents"),
+):
+    """Convert EPUB ebook to markdown format with optional image and TOC extraction.
+
+    Extracts chapters from EPUB file and converts them to individual markdown files.
+    Optionally extracts images and generates a table of contents.
+
+    Args:
+        epub_path: Path to the EPUB file to convert.
+        output_dir: Output directory for markdown files. If not provided, uses EPUB directory.
+        extract_images: If True, extracts all images from the EPUB to an 'assets' folder.
+        generate_toc: If True, generates a table of contents file.
+
+    Raises:
+        typer.Exit: If EPUB file doesn't exist or conversion fails.
+    """
+    epub_file = Path(epub_path)
+    if not epub_file.exists():
+        console.print(f"[red]Error: EPUB file not found: {epub_path}[/red]")
+        raise typer.Exit(1)
+
+    try:
+        if not output_dir:
+            output_dir = epub_file.parent / epub_file.stem
+        else:
+            output_dir = Path(output_dir)
+
+        console.print("Converting EPUB to markdown...")
+        epub_to_md(str(epub_path), str(output_dir))
+
+        if extract_images:
+            console.print("Extracting images...")
+            image_output_dir = output_dir / "assets"
+            extract_imgs_from_epub(str(epub_path), str(image_output_dir))
+            console.print(f"Images extracted to: {image_output_dir}")
+
+        if generate_toc:
+            console.print("Generating table of contents...")
+            toc_path = output_dir / f"{epub_file.stem}_toc.txt"
+            extract_toc(str(epub_path), str(toc_path))
+            console.print(f"Table of contents saved to: {toc_path}")
+
+        console.print("Successfully converted EPUB to markdown")
+        console.print(f"Markdown files saved to: {output_dir}")
+
+        # Move the EPUB file to the output directory
+        epub_output_path = output_dir / epub_file.name
+        epub_file.rename(epub_output_path)
+        console.print(f"EPUB file moved to: {epub_output_path}")
+
+    except Exception as e:
+        console.print(f"Error converting EPUB: {str(e)}")
+        raise typer.Exit(1)

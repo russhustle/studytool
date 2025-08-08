@@ -1,7 +1,12 @@
 import re
+from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
+
+import typer
+
+app = typer.Typer()
 
 
 def get_formatted_link(url: str) -> str:
@@ -49,3 +54,56 @@ def get_formatted_link(url: str) -> str:
     except Exception:
         # Fallback to URL as title if fetching fails
         return f"[‼️ {url}]({url})"
+
+
+@app.command()
+def formatlinks(
+    url: str = typer.Argument(None, help="URL to format as markdown link"),
+    file: str = typer.Option(None, help="Path to file containing URLs (one per line)"),
+    sort: str = typer.Option("asc", help="Sort order: 'asc' (ascending) or 'desc' (descending)"),
+):
+    """Format URLs as markdown links with automatic title extraction.
+
+    Can process a single URL or multiple URLs from a file. URLs are automatically
+    fetched to extract page titles for properly formatted markdown links.
+
+    Args:
+        url: Single URL to format as a markdown link.
+        file: Path to file containing multiple URLs (one per line).
+        sort: Sort order for multiple URLs - 'asc' for ascending, 'desc' for descending.
+
+    Raises:
+        typer.Exit: If neither URL nor file is provided, or if file doesn't exist.
+    """
+    if file:
+        file_path = Path(file)
+        if not file_path.exists():
+            typer.echo(f"Error: File {file} not found", err=True)
+            raise typer.Exit(1)
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        urls = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            url_match = re.search(r"\((https?://[^\)]+)\)", line)
+            if url_match:
+                urls.append(url_match.group(1))
+            elif line.startswith("http"):
+                urls.append(line)
+
+        formatted_links = [get_formatted_link(url) for url in urls]
+        formatted_links.sort(reverse=(sort.lower() == "desc"))
+
+        for link in formatted_links:
+            typer.echo(f"- {link}")
+
+    elif url:
+        typer.echo(get_formatted_link(url))
+    else:
+        typer.echo("Error: Either provide a URL or use --file option", err=True)
+        raise typer.Exit(1)

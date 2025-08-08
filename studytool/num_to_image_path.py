@@ -1,6 +1,10 @@
 import os
 import re
-from typing import List, Optional, Tuple
+from typing import Optional
+
+import typer
+
+app = typer.Typer()
 
 
 def num2img_path(md_path: str, pattern: Optional[str] = None) -> None:
@@ -66,3 +70,31 @@ def replace_numbers_with_images(content: str, folder: str) -> str:
         return f"\n![{padded_num}](imgs/{folder}/{padded_num}.jpg)\n"
 
     return re.sub(r"\n(\d{2,3})\n", replace_match, content)
+
+
+@app.command()
+def imgpath(
+    md_path: str = typer.Argument(default=None, help="Path to the markdown file"),
+    interval: int = typer.Option(default=10, help="Interval in seconds to rerun the operation"),
+    pattern: str = typer.Option(default="、", help="Custom pattern to replace with image paths"),
+    once: bool = typer.Option(default=True, help="Run once without continuous monitoring"),
+):
+    """Convert numbered patterns in markdown to image paths.
+
+    This function replaces patterns (like "、") with corresponding image paths
+    in markdown files. Can run once or continuously monitor the file.
+
+    Args:
+        md_path: Path to the markdown file to process.
+        interval: Time in seconds between runs when continuous monitoring is enabled.
+        pattern: Text pattern to replace with image paths.
+        once: If True, runs once; if False, runs continuously with specified interval.
+    """
+    import time
+
+    num2img_path(md_path=md_path, pattern=pattern)
+
+    if not once:
+        while True:
+            time.sleep(interval)
+            num2img_path(md_path=md_path, pattern=pattern)

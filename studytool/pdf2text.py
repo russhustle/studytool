@@ -5,6 +5,11 @@ import fitz
 from tqdm import tqdm
 
 from .link import get_formatted_link
+from rich.console import Console
+import typer
+
+app = typer.Typer()
+console = Console()
 
 
 def pdf_to_markdown(pdf_path: str, output_path: str = None, extract_urls: bool = False, url_sort: str = "desc") -> str:
@@ -110,97 +115,47 @@ def clean_pdf_text(text: str) -> str:
     return "\n".join(formatted_lines)
 
 
-def extract_urls_from_pdf_folder(folder_path: str, output_file: str = "links.md", url_sort: str = "desc") -> str:
-    """Extract URLs from all PDF files in a folder and save to markdown.
+@app.command()
+def pdf2md(
+    pdf_path: str = typer.Argument(..., help="Path to the PDF file"),
+    output: str = typer.Option(None, help="Output markdown file path (optional)"),
+    extract_urls: bool = typer.Option(False, help="Extract URLs from PDF and include in markdown"),
+    url_sort: str = typer.Option("desc", help="Sort order for URLs: 'asc' (ascending) or 'desc' (descending)"),
+):
+    """Convert PDF file to markdown format with optional URL extraction.
+
+    Extracts text content from PDF and converts it to markdown format.
+    Optionally extracts and lists all URLs found in the PDF.
 
     Args:
-        folder_path: Path to folder containing PDF files
-        output_file: Name of output markdown file
-        url_sort: Sort order for URLs ("asc" or "desc")
+        pdf_path: Path to the PDF file to convert.
+        output: Output path for the markdown file. If not provided, uses PDF name with .md extension.
+        extract_urls: If True, extracts all URLs from the PDF and appends them to the markdown.
+        url_sort: Sort order for extracted URLs - 'asc' for ascending, 'desc' for descending.
 
-    Returns:
-        Path to the created output file
+    Raises:
+        typer.Exit: If PDF file doesn't exist or conversion fails.
     """
-    folder_path = Path(folder_path)
+    pdf_file = Path(pdf_path)
+    if not pdf_file.exists():
+        console.print(f"[red]Error: PDF file not found: {pdf_path}[/red]")
+        raise typer.Exit(1)
 
-    if not folder_path.exists():
-        raise FileNotFoundError(f"Folder not found: {folder_path}")
-    if not folder_path.is_dir():
-        raise ValueError(f"Path is not a directory: {folder_path}")
+    if not output:
+        output = pdf_file.with_suffix(".md")
 
-    pdf_files = list(folder_path.glob("*.pdf"))
-    if not pdf_files:
-        raise ValueError(f"No PDF files found in: {folder_path}")
+    try:
+        content = pdf_to_markdown(pdf_path, output, extract_urls=extract_urls, url_sort=url_sort)
+        console.print(f"[green]✅ Successfully converted PDF to Markdown: {output}[/green]")
+        console.print(f"[blue]📄 Generated {len(content.split())} words[/blue]")
 
-    pdf_urls_data = []
-    all_unique_urls = set()
+        if extract_urls:
+            url_count = content.count("## Extracted URLs")
+            if url_count > 0:
+                console.print(f"[yellow]🔗 Extracted and sorted URLs ({url_sort} order)[/yellow]")
+            else:
+                console.print("[yellow]🔗 No URLs found in the PDF[/yellow]")
 
-    for pdf_file in tqdm(pdf_files, desc="Processing PDF files"):
-        try:
-            doc = fitz.open(pdf_file)
-            pdf_urls = []
-
-            for page_num in tqdm(range(len(doc)), desc=f"Pages in {pdf_file.name}", leave=False):
-                page = doc.load_page(page_num)
-                pdf_urls.extend(extract_urls_from_text(page.get_text()))
-
-            doc.close()
-
-            if pdf_urls:
-                unique_pdf_urls = list(set(pdf_urls))
-                formatted_links = [
-                    get_formatted_link(url)
-                    for url in tqdm(unique_pdf_urls, desc=f"Formatting URLs in {pdf_file.name}", leave=False)
-                ]
-
-                for link in formatted_links:
-                    all_unique_urls.add(link)
-
-                formatted_links.sort(reverse=(url_sort.lower() != "asc"))
-                pdf_urls_data.append(
-                    {"filename": pdf_file.name, "urls": formatted_links, "count": len(formatted_links)}
-                )
-
-        except Exception as e:
-            tqdm.write(f"Warning: Could not process {pdf_file.name}: {str(e)}")
-
-    if not pdf_urls_data:
-        raise ValueError("No URLs found in any PDF files")
-
-    pdf_urls_data.sort(key=lambda x: x["filename"])
-
-    markdown_content = [
-        "# Extracted URLs from PDF Files",
-        "",
-        f"**Folder:** `{folder_path.resolve()}`",
-        f"**Total PDFs processed:** {len(pdf_urls_data)}",
-        f"**Total unique URLs found:** {len(all_unique_urls)}",
-        f"**Sort order:** {url_sort}",
-        "",
-        "## Table of Contents",
-        "",
-    ]
-
-    for pdf_data in pdf_urls_data:
-        markdown_content.append(
-            f"- [{pdf_data['filename']}](#{pdf_data['filename'].replace('.', '').replace(' ', '-').lower()}) ({pdf_data['count']} URLs)"
-        )
-
-    markdown_content.append("")
-
-    for pdf_data in pdf_urls_data:
-        markdown_content.extend([f"## {pdf_data['filename']}", "", f"**Found {pdf_data['count']} URLs:**", ""])
-        markdown_content.extend([f"- {link}" for link in pdf_data["urls"]])
-        markdown_content.append("")
-
-    all_formatted_links = list(all_unique_urls)
-    all_formatted_links.sort(reverse=(url_sort.lower() != "asc"))
-
-    markdown_content.extend(["## All Unique URLs (Summary)", ""])
-    markdown_content.extend([f"- {link}" for link in all_formatted_links])
-
-    output_path = folder_path / output_file
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(markdown_content))
-
-    return str(output_path)
+    except Exception as e:
+        console.print(f"[red]Error converting PDF: {str(e)}[/red]")
+        raise typer.Exit(1)
