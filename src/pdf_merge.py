@@ -1,5 +1,4 @@
 import os
-from typing import List
 
 import typer
 from PyPDF2 import PdfMerger
