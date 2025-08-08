@@ -99,7 +99,7 @@ class Slide2md:
             print("Done!")
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def course(
     course: str = typer.Argument(default="./", help="Path to the course folder."),
     update_yaml_only: bool = typer.Option(default=False, help="Update MKDocs YAML Only"),

@@ -21,7 +21,7 @@ def playlist_titles(url: str, number: int = 200) -> None:
             print(title)
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def playlist(
     playlist: str = typer.Argument(default=None, help="Path to YouTube Playlist URL."),
     playlist_number: int = typer.Option(default=200, help="Number of videos to extract."),

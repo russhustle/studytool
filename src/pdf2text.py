@@ -115,7 +115,7 @@ def clean_pdf_text(text: str) -> str:
     return "\n".join(formatted_lines)
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def pdf2md(
     pdf_path: str = typer.Argument(..., help="Path to the PDF file"),
     output: str = typer.Option(None, help="Output markdown file path (optional)"),

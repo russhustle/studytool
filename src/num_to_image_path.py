@@ -72,7 +72,7 @@ def replace_numbers_with_images(content: str, folder: str) -> str:
     return re.sub(r"\n(\d{2,3})\n", replace_match, content)
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def imgpath(
     md_path: str = typer.Argument(default=None, help="Path to the markdown file"),
     interval: int = typer.Option(default=10, help="Interval in seconds to rerun the operation"),

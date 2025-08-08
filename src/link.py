@@ -55,7 +55,7 @@ def get_formatted_link(url: str) -> str:
         return f"[‼️ {url}]({url})"
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def formatlinks(
     url: str = typer.Argument(None, help="URL to format as markdown link"),
     file: str = typer.Option(None, help="Path to file containing URLs (one per line)"),

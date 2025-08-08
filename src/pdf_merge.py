@@ -19,7 +19,7 @@ def merge_pdfs_in_dir(dir_path: str, output_file: str) -> None:
         merger.write(file)
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def pdfmerge(
     dir_path: str = typer.Argument(default=None, help="Path to the directory"),
     output_file: str = typer.Option(default="merged_pdf.pdf", help="Merged PDF"),

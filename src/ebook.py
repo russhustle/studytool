@@ -203,7 +203,7 @@ def extract_toc(epub_path, output_path=None):
         return None
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def ebook2md(
     epub_path: str = typer.Argument(..., help="Path to the EPUB file"),
     output_dir: str = typer.Option(None, help="Output directory for markdown files (optional)"),

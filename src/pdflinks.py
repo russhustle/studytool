@@ -130,7 +130,7 @@ def extract_urls_from_pdf_folder(folder_path: str, output_file: str = "links.md"
     return str(output_path)
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def pdflinks(
     folder_path: str = typer.Argument(..., help="Path to folder containing PDF files"),
     output: str = typer.Option("links.md", help="Output markdown file name"),
