@@ -12,13 +12,15 @@ commit:
 	git push origin
 
 push:
-	poetry version patch
-	poetry lock
+	uv version --bump patch
+	uv lock
 	git commit -a -m "update"
 	git push origin
 
 publish:
-	$(eval VERSION=$(shell poetry version --short))
+	$(eval VERSION=$(shell uv version --short))
 	git tag "v$(VERSION)"
 	git push origin "v$(VERSION)"
-	poetry publish --build
+	uv build
+	@echo "Note: Set UV_PUBLISH_TOKEN environment variable with your PyPI token"
+	uv publish --token $$UV_PUBLISH_TOKEN
