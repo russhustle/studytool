@@ -1,9 +1,9 @@
 [project]
 name = "studytool"
-version = "0.1.19"
+version = "0.1.20"
 description = "A comprehensive command-line study toolkit for PDF processing, video downloading, and text conversion."
-authors = [{name = "Sihan A"}]
-license = {text = "MIT"}
+authors = [{ name = "Sihan A" }]
+license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -23,12 +23,8 @@ dependencies = [
     "ebooklib>=0.19",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "black>=23.10.1",
-    "pre-commit>=3.5.0",
-    "flake8>=6.1.0",
-]
+[dependency-groups]
+dev = ["black>=23.10.1", "pre-commit>=3.5.0", "flake8>=6.1.0"]
 
 [project.scripts]
 stt = "src.__init__:app"
@@ -73,10 +69,6 @@ color = true
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[dependency-groups]
-dev = [
-    "pre-commit>=4.2.0",
-]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
