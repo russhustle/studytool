@@ -1,102 +1,154 @@
-import glob
 import os
+import tempfile
 from pathlib import Path
-from typing import List
 
 import typer
 from pdf2image import convert_from_path
 from rich.progress import track
 
+from .course_markdown import PageContentOrder, compose_course_markdown
+from .pdf_text import count_pdf_pages, extract_selectable_page_texts
+
 app = typer.Typer()
 
 
+def _write_text_atomic(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(content)
+        os.replace(temporary_name, path)
+    except BaseException:
+        try:
+            os.unlink(temporary_name)
+        except FileNotFoundError:
+            pass
+        raise
+
+
 class Slide2md:
-    """Convert slides to markdown."""
+    """Orchestrate course PDF images, Markdown, and MkDocs navigation."""
 
-    def __init__(self, course_folder: str, dpi: int = 100):
-        """Initialize"""
+    def __init__(
+        self,
+        course_folder: str | Path,
+        dpi: int = 100,
+        include_text: bool = False,
+        page_order: PageContentOrder = PageContentOrder.IMAGE_TEXT,
+    ):
         self.course_folder = Path(course_folder)
-        self.slides_folder = os.path.join(self.course_folder, "slides")
-        self.docs_folder = os.path.join(self.course_folder, "docs")
-        self.imgs_folder = os.path.join(self.docs_folder, "imgs")
-        self.index_file = os.path.join(self.docs_folder, "README.md")
+        self.slides_folder = self.course_folder / "slides"
+        self.docs_folder = self.course_folder / "docs"
+        self.imgs_folder = self.docs_folder / "imgs"
+        self.index_file = self.docs_folder / "README.md"
+        self.index_yaml = self.course_folder / "mkdocs.yaml"
         self.dpi = dpi
+        self.include_text = include_text
+        self.page_order = page_order
 
-        for folder in [self.imgs_folder, self.docs_folder]:
-            os.makedirs(folder, exist_ok=True)
+    def validate_course(self) -> None:
+        if not self.course_folder.is_dir():
+            raise ValueError(f"Course folder not found: {self.course_folder}")
+        if not self.slides_folder.is_dir():
+            raise ValueError(f"Slides folder not found: {self.slides_folder}")
 
-        if not os.path.exists(self.index_file):
-            with open(self.index_file, "w") as f:
-                f.write("Course Index" + "\n" + "===" + "\n\n")
-                f.close()
+    def prepare_output_directories(self) -> None:
+        self.imgs_folder.mkdir(parents=True, exist_ok=True)
+        if not self.index_file.exists():
+            _write_text_atomic(self.index_file, "Course Index\n===\n\n")
 
-    def pdf_to_image(self, pdf_path) -> None:
-        """Convert PDF to images"""
-        images = convert_from_path(pdf_path=pdf_path, dpi=self.dpi)
-        pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
-        for i, image in track(enumerate(images), description=f"Converting {pdf_name}", total=len(images)):
-            image_path = os.path.join(self.imgs_folder, pdf_name, f"{i + 1:03}.jpg")
-            image.save(fp=image_path)
+    def discover_pdfs(self) -> list[Path]:
+        return sorted(
+            (
+                path
+                for path in self.slides_folder.iterdir()
+                if path.is_file() and path.suffix.lower() == ".pdf"
+            ),
+            key=lambda path: path.name.casefold(),
+        )
 
-    def create_md(self, pdf_name: str) -> None:
-        """Create a markdown file for the given PDF"""
-        image_directory = os.path.join(self.imgs_folder, pdf_name)
-        images = sorted([file for file in os.listdir(image_directory)])
-        markdown_images = [
-            f"![{os.path.splitext(image)[0]}]({os.path.join('imgs', pdf_name, image)})\n" for image in images
-        ]
-        markdown_path = os.path.join(self.docs_folder, f"{pdf_name}.md")
+    def pdf_to_image(self, pdf_path: Path) -> None:
+        """Render every PDF page as a numbered JPEG."""
+        images = convert_from_path(pdf_path=str(pdf_path), dpi=self.dpi)
+        if not images:
+            raise RuntimeError(f"PDF has no renderable pages: {pdf_path}")
 
-        with open(markdown_path, "w") as f:
-            f.write(pdf_name + "\n" + "===" + "\n\n")
-            f.write("\n".join(markdown_images))
-            f.close()
+        image_directory = self.imgs_folder / pdf_path.stem
+        image_directory.mkdir(parents=True, exist_ok=True)
+        for index, image in track(
+            enumerate(images, start=1),
+            description=f"Converting {pdf_path.stem}",
+            total=len(images),
+        ):
+            image.save(fp=image_directory / f"{index:03}.jpg")
 
-    def update_index_yaml(self):
-        """Update the index.yaml file"""
-        self.index_yaml = os.path.join(self.course_folder, "mkdocs.yaml")
-        course_name = os.path.basename(self.course_folder)
-        markdown_files = glob.glob(os.path.join(self.docs_folder, "*.md"))
-        markdown_files = sorted([f for f in markdown_files if os.path.basename(f) != "README.md"])
-        with open(self.index_yaml, "w") as f:
-            f.write(f"site_name: {course_name}\n\n")
-            f.write("nav:\n")
-            f.write("   - Home: README.md\n")
-            for markdown_file in markdown_files:
-                markdown_name = os.path.basename(markdown_file).rsplit(".")[0]
-                title_markdown_name = markdown_name.replace("-", " ").title()
-                f.write(f"   - {title_markdown_name}: {markdown_name}.md\n")
-            f.close()
+    def ensure_page_images(self, pdf_path: Path, page_count: int) -> tuple[list[Path], bool]:
+        if page_count <= 0:
+            raise ValueError(f"PDF has no pages: {pdf_path}")
 
-    def run(self):
-        """Run the slide2md script."""
-        # Find the PDFs not yet converted
-        pdfs_not_converted = []
-        for pdf in os.listdir(self.slides_folder):
-            pdf_path = os.path.join(self.slides_folder, pdf)
-            pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
-            img_folder = os.path.join(self.imgs_folder, pdf_name)
+        image_directory = self.imgs_folder / pdf_path.stem
+        expected_images = [image_directory / f"{page:03}.jpg" for page in range(1, page_count + 1)]
+        rendered = not all(image.is_file() for image in expected_images)
+        if rendered:
+            self.pdf_to_image(pdf_path)
 
-            if os.path.exists(img_folder):
-                continue
-            else:
-                pdfs_not_converted.append(pdf)
+        missing_images = [image for image in expected_images if not image.is_file()]
+        if missing_images:
+            missing_names = ", ".join(image.name for image in missing_images)
+            raise RuntimeError(f"Missing rendered page images for {pdf_path.name}: {missing_names}")
 
-        # Convert the PDFs
-        if pdfs_not_converted == []:
-            print("All slides converted!")
+        return expected_images, rendered
 
-        else:
-            for pdf in sorted(pdfs_not_converted):
-                pdf_path = os.path.join(self.slides_folder, pdf)
-                pdf_name = os.path.basename(pdf_path).rsplit(".")[0]
-                img_folder = os.path.join(self.imgs_folder, pdf_name)
-                os.makedirs(name=img_folder)
-                self.pdf_to_image(pdf_path=pdf_path)
-                self.create_md(pdf_name=pdf_name)
+    def create_md(self, pdf_path: Path, image_paths: list[Path], page_texts: list[str] | None) -> None:
+        """Write one complete Markdown document for a PDF."""
+        relative_images = [image.relative_to(self.docs_folder).as_posix() for image in image_paths]
+        content = compose_course_markdown(
+            pdf_path.stem,
+            relative_images,
+            page_texts,
+            page_order=self.page_order,
+        )
+        _write_text_atomic(self.docs_folder / f"{pdf_path.stem}.md", content)
 
-            self.update_index_yaml()
-            print("Done!")
+    def process_pdf(self, pdf_path: Path) -> None:
+        page_texts = extract_selectable_page_texts(pdf_path) if self.include_text else None
+        page_count = len(page_texts) if page_texts is not None else count_pdf_pages(pdf_path)
+        image_paths, rendered = self.ensure_page_images(pdf_path, page_count)
+        markdown_path = self.docs_folder / f"{pdf_path.stem}.md"
+
+        if self.include_text or rendered or not markdown_path.exists():
+            self.create_md(pdf_path, image_paths, page_texts)
+
+    def update_index_yaml(self) -> None:
+        """Update the MkDocs navigation file."""
+        markdown_files = sorted(
+            (path for path in self.docs_folder.glob("*.md") if path.name != self.index_file.name),
+            key=lambda path: path.name.casefold(),
+        )
+        lines = [f"site_name: {self.course_folder.name}", "", "nav:", "   - Home: README.md"]
+        for markdown_file in markdown_files:
+            title = markdown_file.stem.replace("-", " ").title()
+            lines.append(f"   - {title}: {markdown_file.name}")
+        _write_text_atomic(self.index_yaml, "\n".join(lines) + "\n")
+
+    def run(self) -> None:
+        """Process all course PDFs."""
+        self.validate_course()
+        pdfs = self.discover_pdfs()
+        if not pdfs:
+            raise ValueError(f"No PDF files found in: {self.slides_folder}")
+
+        self.prepare_output_directories()
+        for pdf_path in pdfs:
+            self.process_pdf(pdf_path)
+        self.update_index_yaml()
+        print("Done!")
+
+    def update_yaml_only(self) -> None:
+        self.validate_course()
+        self.prepare_output_directories()
+        self.update_index_yaml()
 
 
 @app.callback(invoke_without_command=True)
@@ -104,13 +156,29 @@ def course(
     course: str = typer.Argument(default="./", help="Path to the course folder."),
     update_yaml_only: bool = typer.Option(default=False, help="Update MKDocs YAML Only"),
     dpi: int = typer.Option(default=100, help="DPI for PDF to image conversion"),
+    include_text: bool = typer.Option(
+        default=False,
+        help="Include each PDF page's selectable text in Markdown.",
+    ),
+    page_order: PageContentOrder = typer.Option(
+        default=PageContentOrder.IMAGE_TEXT,
+        help="Order of each page's image and selectable text.",
+    ),
 ):
-    """Process course materials and convert slides to markdown format.
+    """Process course PDFs into page images and Markdown documents."""
+    if include_text and update_yaml_only:
+        raise typer.BadParameter("cannot be used with --update-yaml-only", param_hint="--include-text")
+    if not include_text and page_order == PageContentOrder.TEXT_IMAGE:
+        raise typer.BadParameter("requires --include-text", param_hint="--page-order")
 
-    Args:
-        course: Path to the course folder containing slides and materials.
-        update_yaml_only: If True, only updates MKDocs YAML configuration without processing slides.
-        dpi: Resolution for PDF to image conversion (higher values = better quality).
-    """
-    slide2md = Slide2md(course_folder=course, dpi=dpi)
-    slide2md.update_index_yaml() if update_yaml_only else slide2md.run()
+    converter = Slide2md(
+        course_folder=course,
+        dpi=dpi,
+        include_text=include_text,
+        page_order=page_order,
+    )
+    try:
+        converter.update_yaml_only() if update_yaml_only else converter.run()
+    except Exception as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=1) from None

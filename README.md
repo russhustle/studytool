@@ -25,6 +25,23 @@ pip install studytool
 stt course tinyml
 ```
 
+Include selectable PDF text for each page image:
+
+```shell
+stt course tinyml --include-text
+```
+
+Choose whether each page's text appears before or after its image:
+
+```shell
+stt course tinyml --include-text --page-order text-image
+stt course tinyml --include-text --page-order image-text
+```
+
+Image-only Markdown remains the default. `stt slides2md` is also available as a
+compatibility alias. Scanned pages without selectable text keep their page
+image, but no OCR text is generated.
+
 Before
 
 ```sh

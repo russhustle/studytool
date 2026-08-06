@@ -13,6 +13,7 @@ from .youtube_playlist import app as playlist_titles
 
 app = typer.Typer()
 app.add_typer(pdfmerge, name="pdfmerge", help="Merge PDF files in a directory")
+app.add_typer(slides2md, name="course", help="Convert PDF slides to markdown files")
 app.add_typer(slides2md, name="slides2md", help="Convert PDF slides to markdown files")
 app.add_typer(num2imgpath, name="num2imgpath", help="Convert numbered patterns in markdown to image paths")
 app.add_typer(t2s, name="t2s", help="Convert Traditional Chinese text to Simplified Chinese in a file")
