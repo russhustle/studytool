@@ -1,4 +1,4 @@
-"""Find image files that are not referenced by their Markdown document."""
+"""Check for Markdown images that are not referenced by their document."""
 
 import subprocess
 from pathlib import Path

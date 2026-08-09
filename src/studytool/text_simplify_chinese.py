@@ -1,3 +1,5 @@
+"""Convert Traditional Chinese text to Simplified Chinese from the text CLI group."""
+
 import typer
 from opencc import OpenCC
 

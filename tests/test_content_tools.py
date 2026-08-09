@@ -8,7 +8,7 @@ from ebooklib import epub
 from PIL import Image
 from typer.testing import CliRunner
 
-from studytool.chinese_conversion import convert_traditional_to_simplified
+from studytool.text_simplify_chinese import convert_traditional_to_simplified
 from studytool.cli import app
 from studytool.epub import (
     epub_to_chapters,
@@ -216,7 +216,7 @@ class TextAndYoutubeTests(unittest.TestCase):
 
     def test_reports_chinese_converter_errors(self) -> None:
         with (
-            patch("studytool.chinese_conversion.OpenCC", side_effect=RuntimeError("bad config")),
+            patch("studytool.text_simplify_chinese.OpenCC", side_effect=RuntimeError("bad config")),
             patch("builtins.print") as print_message,
         ):
             convert_traditional_to_simplified("notes.md")

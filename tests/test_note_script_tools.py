@@ -13,8 +13,9 @@ from studytool.markdown_calendar import (
     generate_markdown_calendar,
     render_markdown_calendar,
 )
-from studytool.text_formatting import double_blank_lines, transcript_to_paragraphs
-from studytool.unused_images import find_unused_images, remove_unused_images
+from studytool.markdown_unused_images import find_unused_images, remove_unused_images
+from studytool.text_double_newlines import double_blank_lines
+from studytool.text_transcript_to_paragraphs import transcript_to_paragraphs
 from studytool.youtube_playlist import format_duration, playlist_table
 
 
@@ -109,7 +110,7 @@ class UnusedImageTests(unittest.TestCase):
             image_path = Path(temporary_directory) / "unused.jpg"
             image_path.touch()
 
-            with patch("studytool.unused_images.subprocess.run") as run:
+            with patch("studytool.markdown_unused_images.subprocess.run") as run:
                 removed = remove_unused_images([image_path])
 
             self.assertEqual(removed, [image_path])
@@ -135,7 +136,7 @@ class UnusedImageTests(unittest.TestCase):
             image_path.touch()
 
             with patch(
-                "studytool.unused_images.subprocess.run",
+                "studytool.markdown_unused_images.subprocess.run",
                 side_effect=FileNotFoundError,
             ):
                 remove_unused_images([image_path])
