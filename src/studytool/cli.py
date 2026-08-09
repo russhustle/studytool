@@ -10,28 +10,37 @@ from .markdown_links import format_links_command
 from .pdf_links import extract_pdf_links_command
 from .pdf_markdown import pdf_to_markdown_command
 from .pdf_merge import merge_pdfs_command
+from .pdf_page_numbers import add_page_numbers_command
+from .pdf_text import extract_pdf_text_command
 from .youtube_playlist import playlist_titles_command
+
+HELP_CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 app = typer.Typer(
     help="Turn study materials into useful Markdown and supporting assets.",
     no_args_is_help=True,
+    context_settings=HELP_CONTEXT_SETTINGS,
 )
 
 pdf_app = typer.Typer(
     help="Convert, merge, and inspect PDF documents.",
     no_args_is_help=True,
+    context_settings=HELP_CONTEXT_SETTINGS,
 )
 markdown_app = typer.Typer(
     help="Prepare links and image references for Markdown.",
     no_args_is_help=True,
+    context_settings=HELP_CONTEXT_SETTINGS,
 )
 text_app = typer.Typer(
     help="Transform text files.",
     no_args_is_help=True,
+    context_settings=HELP_CONTEXT_SETTINGS,
 )
 youtube_app = typer.Typer(
     help="Extract study material from YouTube.",
     no_args_is_help=True,
+    context_settings=HELP_CONTEXT_SETTINGS,
 )
 
 # Primary command hierarchy. Commands are grouped by the resource they operate on,
@@ -44,6 +53,8 @@ app.add_typer(text_app, name="text")
 app.add_typer(youtube_app, name="youtube")
 
 pdf_app.command(name="to-markdown", help="Convert one PDF to Markdown.")(pdf_to_markdown_command)
+pdf_app.command(name="extract-text", help="Extract selectable PDF text to a text file.")(extract_pdf_text_command)
+pdf_app.command(name="add-page-numbers", help="Add page-number labels to PDF pages.")(add_page_numbers_command)
 pdf_app.command(name="merge", help="Merge every PDF in a directory.")(merge_pdfs_command)
 pdf_app.command(
     name="extract-links",

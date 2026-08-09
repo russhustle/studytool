@@ -7,6 +7,20 @@ from bs4 import BeautifulSoup
 
 from .cli_types import SortOrder
 
+URL_RE = re.compile(r'https?://[^\s<>"{}|\\^`\[\]]+')
+TRAILING_URL_PUNCTUATION_RE = re.compile(r'[.,;:!?)\]}>"\']+$')
+
+
+def normalize_url(url: str) -> str:
+    """Remove prose punctuation and normalize arXiv PDF links."""
+    cleaned = TRAILING_URL_PUNCTUATION_RE.sub("", url)
+    return re.sub(r"arxiv\.org/pdf/", "arxiv.org/abs/", cleaned, flags=re.IGNORECASE)
+
+
+def extract_unique_urls(text: str) -> list[str]:
+    """Extract unique normalized HTTP URLs from arbitrary text."""
+    return sorted({normalize_url(url) for url in URL_RE.findall(text)})
+
 
 def get_formatted_link(url: str) -> str:
     """
@@ -19,12 +33,10 @@ def get_formatted_link(url: str) -> str:
     Returns:
         Formatted markdown link as [title](url)
     """
-    # Convert arXiv PDF URLs to abstract URLs
-    if "arxiv.org/pdf/" in url.lower():
-        url = url.replace("/pdf/", "/abs/")
+    url = normalize_url(url)
 
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
         response.raise_for_status()
 
         soup = BeautifulSoup(response.content, "html.parser")
@@ -56,7 +68,7 @@ def get_formatted_link(url: str) -> str:
 
 
 def format_links_command(
-    url: str = typer.Argument(None, help="URL to format as markdown link"),
+    input_text: str = typer.Argument(None, help="URL, raw text, or a path containing URLs."),
     file: str = typer.Option(None, "--file", "-f", help="Path to a file containing one URL per line."),
     sort: SortOrder = typer.Option(SortOrder.ASCENDING, help="Sort order for formatted links."),
 ):
@@ -66,42 +78,44 @@ def format_links_command(
     fetched to extract page titles for properly formatted markdown links.
 
     Args:
-        url: Single URL to format as a markdown link.
+        input_text: URL, raw text, or file path containing URLs.
         file: Path to file containing multiple URLs (one per line).
         sort: Sort order for multiple URLs - 'asc' for ascending, 'desc' for descending.
 
     Raises:
         typer.Exit: If neither URL nor file is provided, or if file doesn't exist.
     """
+    is_collection = bool(file)
     if file:
         file_path = Path(file)
         if not file_path.exists():
             typer.echo(f"Error: File {file} not found", err=True)
             raise typer.Exit(1)
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-        urls = []
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-
-            url_match = re.search(r"\((https?://[^\)]+)\)", line)
-            if url_match:
-                urls.append(url_match.group(1))
-            elif line.startswith("http"):
-                urls.append(line)
-
-        formatted_links = [get_formatted_link(url) for url in urls]
-        formatted_links.sort(reverse=(sort.lower() == "desc"))
-
-        for link in formatted_links:
-            typer.echo(f"- {link}")
-
-    elif url:
-        typer.echo(get_formatted_link(url))
+        text = file_path.read_text(encoding="utf-8")
+    elif input_text:
+        input_path = Path(input_text)
+        try:
+            is_input_file = input_path.is_file()
+        except OSError:
+            is_input_file = False
+        if is_input_file:
+            text = input_path.read_text(encoding="utf-8")
+            is_collection = True
+        else:
+            text = input_text
     else:
-        typer.echo("Error: Either provide a URL or use --file option", err=True)
+        typer.echo("Error: Provide a URL, text, file path, or use --file", err=True)
         raise typer.Exit(1)
+
+    urls = extract_unique_urls(text)
+    if not urls:
+        typer.echo("Error: No URLs found in the provided input", err=True)
+        raise typer.Exit(1)
+
+    is_collection = is_collection or len(urls) > 1 or text.strip() != urls[0]
+    formatted_links = sorted(
+        (get_formatted_link(url) for url in urls),
+        reverse=(sort == SortOrder.DESCENDING),
+    )
+    for link in formatted_links:
+        typer.echo(f"- {link}" if is_collection else link)

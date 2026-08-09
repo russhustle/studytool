@@ -26,8 +26,24 @@ class CommandHierarchyTests(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0, result.output)
         self.assertIn("to-markdown", result.output)
+        self.assertIn("extract-text", result.output)
+        self.assertIn("add-page-numbers", result.output)
         self.assertIn("merge", result.output)
         self.assertIn("extract-links", result.output)
+
+    def test_short_help_alias_works_at_every_command_level(self) -> None:
+        invocations = [
+            ["-h"],
+            ["pdf", "-h"],
+            ["pdf", "extract-text", "-h"],
+            ["ebook", "-h"],
+        ]
+
+        for arguments in invocations:
+            with self.subTest(arguments=arguments):
+                result = self.runner.invoke(app, arguments)
+                self.assertEqual(result.exit_code, 0, result.output)
+                self.assertIn("Usage:", result.output)
 
     def test_nested_leaf_is_a_command_not_an_extra_group(self) -> None:
         result = self.runner.invoke(app, ["pdf", "to-markdown", "--help"])

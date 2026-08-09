@@ -30,6 +30,8 @@ stt
 │   └── insert-images              Replace page numbers with image references
 ├── pdf
 │   ├── to-markdown                Convert one PDF to Markdown
+│   ├── extract-text               Extract selectable text to a text file
+│   ├── add-page-numbers           Add labels to one PDF or a directory
 │   ├── merge                      Merge PDFs in a directory
 │   └── extract-links              Extract links from PDFs in a directory
 ├── text
@@ -38,7 +40,7 @@ stt
     └── playlist                   Print playlist video titles
 ```
 
-Run `stt --help` or `stt <group> --help` to explore the available commands.
+Run `stt --help`, `stt -h`, or `stt <group> -h` to explore the available commands.
 
 ## Examples
 
@@ -90,6 +92,15 @@ stt pdf to-markdown lecture.pdf --output notes.md
 # Include links found in the PDF
 stt pdf to-markdown lecture.pdf --extract-urls --sort asc
 
+# Extract plain text with page separators
+stt pdf extract-text lecture.pdf --page-numbers --output lecture.txt
+
+# Add right-aligned page numbers to one PDF
+stt pdf add-page-numbers slides.pdf --position right --output numbered.pdf
+
+# Add page numbers to every PDF in a directory
+stt pdf add-page-numbers ./slides --output ./numbered-slides
+
 # Merge every PDF in a directory
 stt pdf merge ./handouts --output handouts.pdf
 
@@ -102,6 +113,7 @@ stt pdf extract-links ./handouts --output links.md
 ```shell
 stt markdown format-links https://example.com
 stt markdown format-links --file urls.txt --sort asc
+stt markdown format-links "Read https://example.com and https://arxiv.org/pdf/2001.08361"
 stt markdown insert-images notes.md
 stt text simplify-chinese notes.md
 ```
@@ -110,10 +122,12 @@ stt text simplify-chinese notes.md
 
 ```shell
 stt ebook book.epub --output ./book-notes
+stt ebook book.epub --output ./book-notes --image-width 800
 ```
 
 Images and the table of contents are included by default. Disable either with
-`--no-extract-images` or `--no-generate-toc`.
+`--no-extract-images` or `--no-generate-toc`. Use `--image-width` to resize
+extracted images proportionally.
 
 ### List YouTube playlist titles
 

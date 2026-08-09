@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 import ebooklib
 from ebooklib import epub
+from PIL import Image
 from typer.testing import CliRunner
 
 from studytool.chinese_conversion import convert_traditional_to_simplified
@@ -14,6 +15,7 @@ from studytool.epub import (
     epub_to_markdown,
     extract_images_from_epub,
     extract_toc,
+    resize_images_in_folder,
     save_chapters_as_markdown,
 )
 
@@ -108,6 +110,22 @@ class EpubTests(unittest.TestCase):
 
             self.assertEqual((output_directory / "cover.jpg").read_bytes(), b"image-data")
 
+    def test_resizes_supported_epub_images_proportionally(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            image_path = directory / "cover.PNG"
+            Image.new("RGB", (200, 100), color="red").save(image_path)
+            (directory / "notes.txt").touch()
+
+            resized = resize_images_in_folder(directory, 50)
+            with Image.open(image_path) as image:
+                size = image.size
+
+        self.assertEqual(resized, [image_path])
+        self.assertEqual(size, (50, 25))
+        with self.assertRaisesRegex(ValueError, "greater than zero"):
+            resize_images_in_folder("unused", 0)
+
     def test_extracts_nested_toc_and_handles_empty_or_invalid_books(self) -> None:
         first = epub.Link("first.xhtml", "First", "first")
         second = epub.Link("second.xhtml", "Second", "second")
@@ -142,12 +160,17 @@ class EpubTests(unittest.TestCase):
             with (
                 patch("studytool.epub.epub_to_markdown") as convert,
                 patch("studytool.epub.extract_images_from_epub") as images,
+                patch("studytool.epub.resize_images_in_folder") as resize,
                 patch("studytool.epub.extract_toc") as toc,
             ):
-                success = self.runner.invoke(app, ["ebook", str(source), "--output", str(output)])
+                success = self.runner.invoke(
+                    app,
+                    ["ebook", str(source), "--output", str(output), "--image-width", "320"],
+                )
 
             convert.assert_called_once_with(str(source), str(output))
             images.assert_called_once()
+            resize.assert_called_once_with(output / "assets", 320)
             toc.assert_called_once()
             self.assertTrue((output / "book.epub").exists())
 
@@ -159,12 +182,19 @@ class EpubTests(unittest.TestCase):
                     ["ebook", str(broken_source), "--output", str(output), "--no-extract-images"],
                 )
 
+            invalid_options = self.runner.invoke(
+                app,
+                ["ebook", str(broken_source), "--no-extract-images", "--image-width", "100"],
+            )
+
         self.assertEqual(missing.exit_code, 1)
         self.assertIn("not found", missing.output)
         self.assertEqual(success.exit_code, 0, success.output)
         self.assertIn("Successfully converted", success.output)
         self.assertEqual(failure.exit_code, 1)
         self.assertIn("conversion failed", failure.output)
+        self.assertNotEqual(invalid_options.exit_code, 0)
+        self.assertIn("requires image extraction", invalid_options.output)
 
 
 class TextAndYoutubeTests(unittest.TestCase):

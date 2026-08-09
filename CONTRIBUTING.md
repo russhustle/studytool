@@ -41,6 +41,7 @@ uv run python -m studytool --help
 | `src/studytool/cli.py` | Builds the public command hierarchy and compatibility aliases. |
 | `src/studytool/__main__.py` | Supports running the package with `python -m studytool`. |
 | `src/studytool/cli_types.py` | Contains option types shared by commands. |
+| `src/studytool/pdf_page_numbers.py` | Adds page-number labels to PDF files. |
 | `src/studytool/*.py` | Implements the individual study-tool operations. |
 | `tests/` | Contains command hierarchy and behavior tests. |
 | `README.md` | Documents installation and user-facing commands. |

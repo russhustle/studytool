@@ -6,6 +6,7 @@ import ebooklib
 import typer
 from bs4 import BeautifulSoup
 from ebooklib import epub
+from PIL import Image
 from rich.console import Console
 
 console = Console()
@@ -143,6 +144,28 @@ def extract_images_from_epub(epub_path, output_dir):
             print(f"Saved image: {image_name}")
 
 
+def resize_images_in_folder(folder_path: str | Path, target_width: int) -> list[Path]:
+    """Resize supported images proportionally and return the updated paths."""
+    if target_width <= 0:
+        raise ValueError("target width must be greater than zero")
+
+    folder = Path(folder_path)
+    resized_paths = []
+    for image_path in sorted(folder.iterdir(), key=lambda path: path.name.casefold()):
+        if not image_path.is_file() or image_path.suffix.lower() not in {".jpg", ".jpeg", ".png", ".gif"}:
+            continue
+        with Image.open(image_path) as image:
+            target_height = max(1, round(image.height * (target_width / image.width)))
+            resized_image = image.resize((target_width, target_height))
+            try:
+                resized_image.save(image_path)
+            finally:
+                resized_image.close()
+        resized_paths.append(image_path)
+        print(f"Resized image: {image_path.name}")
+    return resized_paths
+
+
 def extract_toc(epub_path, output_path=None):
     """
     Extract the table of contents from an EPUB file and save it to a text file.
@@ -213,6 +236,11 @@ def convert_epub_command(
         help="Output directory for Markdown files.",
     ),
     extract_images: bool = typer.Option(True, help="Extract images from EPUB"),
+    image_width: int | None = typer.Option(
+        None,
+        min=1,
+        help="Resize extracted images to this width in pixels.",
+    ),
     generate_toc: bool = typer.Option(True, help="Generate table of contents"),
 ):
     """Convert EPUB ebook to markdown format with optional image and TOC extraction.
@@ -224,11 +252,15 @@ def convert_epub_command(
         epub_path: Path to the EPUB file to convert.
         output_dir: Output directory for markdown files. If not provided, uses EPUB directory.
         extract_images: If True, extracts all images from the EPUB to an 'assets' folder.
+        image_width: Optional target width for extracted images.
         generate_toc: If True, generates a table of contents file.
 
     Raises:
         typer.Exit: If EPUB file doesn't exist or conversion fails.
     """
+    if image_width is not None and not extract_images:
+        raise typer.BadParameter("requires image extraction", param_hint="--image-width")
+
     epub_file = Path(epub_path)
     if not epub_file.exists():
         console.print(f"[red]Error: EPUB file not found: {epub_path}[/red]")
@@ -247,6 +279,9 @@ def convert_epub_command(
             console.print("Extracting images...")
             image_output_dir = output_dir / "assets"
             extract_images_from_epub(str(epub_path), str(image_output_dir))
+            if image_width is not None:
+                console.print(f"Resizing images to {image_width}px...")
+                resize_images_in_folder(image_output_dir, image_width)
             console.print(f"Images extracted to: {image_output_dir}")
 
         if generate_toc:

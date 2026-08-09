@@ -7,10 +7,18 @@ import fitz
 from typer.testing import CliRunner
 
 from studytool.cli import app
+from studytool.cli_types import PageNumberPosition
 from studytool.pdf_links import extract_urls_from_pdf_folder
 from studytool.pdf_links import extract_urls_from_text as extract_folder_urls
 from studytool.pdf_markdown import clean_pdf_text, extract_urls_from_text, pdf_to_markdown
-from studytool.pdf_text import clean_selectable_text, count_pdf_pages, extract_selectable_page_texts
+from studytool.pdf_page_numbers import add_page_numbers_to_pdf, discover_pdfs, horizontal_text_position
+from studytool.pdf_text import (
+    clean_selectable_text,
+    count_pdf_pages,
+    export_pdf_text,
+    extract_selectable_page_texts,
+    render_pdf_text,
+)
 
 
 def create_pdf(path: Path, page_texts: list[str]) -> None:
@@ -35,6 +43,140 @@ class PdfTextTests(unittest.TestCase):
 
             self.assertEqual(count_pdf_pages(pdf_path), 2)
             self.assertEqual(extract_selectable_page_texts(pdf_path), ["First page", "Second page"])
+
+    def test_exports_plain_text_with_optional_page_numbers(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            pdf_path = directory / "lesson.pdf"
+            output_path = directory / "text" / "lesson.txt"
+            create_pdf(pdf_path, ["First", "Second"])
+
+            rendered = render_pdf_text(pdf_path, include_page_numbers=True)
+            destination = export_pdf_text(pdf_path, output_path, include_page_numbers=True)
+
+            self.assertIn("--- Page 1 ---", rendered)
+            self.assertIn("--- Page 2 ---", rendered)
+            self.assertEqual(destination, output_path)
+            self.assertEqual(output_path.read_text(encoding="utf-8"), rendered)
+
+    def test_extract_text_command_uses_default_and_custom_outputs(self) -> None:
+        runner = CliRunner()
+        with TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            pdf_path = directory / "lesson.pdf"
+            custom_output = directory / "custom.txt"
+            create_pdf(pdf_path, ["Text"])
+
+            default_result = runner.invoke(app, ["pdf", "extract-text", str(pdf_path)])
+            custom_result = runner.invoke(
+                app,
+                ["pdf", "extract-text", str(pdf_path), "--output", str(custom_output), "--page-numbers"],
+            )
+
+            self.assertEqual(default_result.exit_code, 0, default_result.output)
+            self.assertTrue(pdf_path.with_suffix(".txt").exists())
+            self.assertEqual(custom_result.exit_code, 0, custom_result.output)
+            self.assertIn("--- Page 1 ---", custom_output.read_text(encoding="utf-8"))
+
+        missing = runner.invoke(app, ["pdf", "extract-text", "missing.pdf"])
+        self.assertNotEqual(missing.exit_code, 0)
+
+    def test_extract_text_command_reports_extraction_errors(self) -> None:
+        runner = CliRunner()
+        with TemporaryDirectory() as temporary_directory:
+            pdf_path = Path(temporary_directory) / "broken.pdf"
+            pdf_path.touch()
+            with patch("studytool.pdf_text.export_pdf_text", side_effect=RuntimeError("broken PDF")):
+                result = runner.invoke(app, ["pdf", "extract-text", str(pdf_path)])
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertIn("broken PDF", result.output)
+
+
+class PdfPageNumberTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.runner = CliRunner()
+
+    def test_calculates_left_center_and_right_positions(self) -> None:
+        self.assertEqual(horizontal_text_position(PageNumberPosition.LEFT, 100, 20, 5), 5)
+        self.assertEqual(horizontal_text_position(PageNumberPosition.CENTER, 100, 20, 5), 40)
+        self.assertEqual(horizontal_text_position(PageNumberPosition.RIGHT, 100, 20, 5), 75)
+
+    def test_adds_page_number_labels_to_pdf(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            source = directory / "slides.pdf"
+            output = directory / "numbered.pdf"
+            create_pdf(source, ["", ""])
+
+            result = add_page_numbers_to_pdf(source, output, position=PageNumberPosition.RIGHT)
+            with fitz.open(output) as document:
+                page_text = [page.get_text() for page in document]
+
+        self.assertEqual(result, output.resolve())
+        self.assertIn("1 / 2", page_text[0])
+        self.assertIn("2 / 2", page_text[1])
+
+    def test_discovers_and_processes_directory_pdfs(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            source = directory / "source"
+            output = directory / "output"
+            source.mkdir()
+            create_pdf(source / "B.pdf", [""])
+            create_pdf(source / "a.PDF", [""])
+            (source / "notes.txt").touch()
+
+            self.assertEqual([path.name for path in discover_pdfs(source)], ["a.PDF", "B.pdf"])
+            result = self.runner.invoke(
+                app,
+                ["pdf", "add-page-numbers", str(source), "--output", str(output), "--position", "center"],
+            )
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertEqual(sorted(path.name for path in output.iterdir()), ["B.pdf", "a.PDF"])
+
+    def test_single_pdf_can_write_into_output_directory(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            source = directory / "slides.pdf"
+            output = directory / "output"
+            output.mkdir()
+            create_pdf(source, [""])
+
+            result = self.runner.invoke(
+                app,
+                ["pdf", "add-page-numbers", str(source), "--output", str(output)],
+            )
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertTrue((output / "slides.pdf").exists())
+
+    def test_page_number_command_reports_invalid_inputs(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            empty_directory = Path(temporary_directory)
+            no_pdfs = self.runner.invoke(app, ["pdf", "add-page-numbers", str(empty_directory)])
+            invalid_color = self.runner.invoke(
+                app,
+                ["pdf", "add-page-numbers", str(empty_directory), "--color", "blue"],
+            )
+
+            source_directory = empty_directory / "source"
+            source_directory.mkdir()
+            create_pdf(source_directory / "slides.pdf", [""])
+            output_file = empty_directory / "output.pdf"
+            output_file.touch()
+            invalid_output = self.runner.invoke(
+                app,
+                ["pdf", "add-page-numbers", str(source_directory), "--output", str(output_file)],
+            )
+
+        self.assertEqual(no_pdfs.exit_code, 1)
+        self.assertIn("No PDF files", no_pdfs.output)
+        self.assertNotEqual(invalid_color.exit_code, 0)
+        self.assertIn("not one of", invalid_color.output)
+        self.assertEqual(invalid_output.exit_code, 1)
+        self.assertIn("Output must be a directory", invalid_output.output)
 
 
 class PdfMarkdownTests(unittest.TestCase):
