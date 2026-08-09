@@ -24,3 +24,12 @@ publish:
 	uv build
 	@echo "Note: Set UV_PUBLISH_TOKEN environment variable with your PyPI token"
 	uv publish --token $$UV_PUBLISH_TOKEN
+
+merge:
+	git push origin dev
+	git checkout main
+	git pull origin main
+	git merge dev
+	git push origin main
+	git checkout dev
+	git merge main
