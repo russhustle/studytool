@@ -143,7 +143,7 @@ class UnusedImageTests(unittest.TestCase):
 
             self.assertFalse(image_path.exists())
 
-    def test_check_command_reports_failure_then_fix_deletes_image(self) -> None:
+    def test_check_file_keeps_images_when_user_declines(self) -> None:
         with TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             markdown_path = root / "lesson.md"
@@ -153,21 +153,83 @@ class UnusedImageTests(unittest.TestCase):
             unused_path = image_directory / "unused.jpg"
             unused_path.touch()
 
-            check = self.runner.invoke(
+            result = self.runner.invoke(
                 app,
                 ["markdown", "check-unused-images", str(markdown_path)],
+                input="n\n",
             )
-            fix = self.runner.invoke(
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertIn("unused image 'unused.jpg'", result.output)
+            self.assertIn("Remove 1 unused image?", result.output)
+            self.assertIn("Kept 1 unused image.", result.output)
+            self.assertTrue(unused_path.exists())
+
+    def test_check_file_removes_images_when_user_confirms(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            markdown_path = root / "lesson.md"
+            image_directory = root / "imgs" / "lesson"
+            image_directory.mkdir(parents=True)
+            markdown_path.write_text("No image references", encoding="utf-8")
+            unused_path = image_directory / "unused.jpg"
+            unused_path.touch()
+
+            result = self.runner.invoke(
+                app,
+                ["markdown", "check-unused-images", str(markdown_path)],
+                input="y\n",
+            )
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertIn("Removed:", result.output)
+            self.assertFalse(unused_path.exists())
+
+    def test_fix_deletes_without_prompt(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            markdown_path = root / "lesson.md"
+            image_directory = root / "imgs" / "lesson"
+            image_directory.mkdir(parents=True)
+            markdown_path.write_text("No image references", encoding="utf-8")
+            unused_path = image_directory / "unused.jpg"
+            unused_path.touch()
+
+            fixed = self.runner.invoke(
                 app,
                 ["markdown", "check-unused-images", "--fix", str(markdown_path)],
             )
 
-            self.assertEqual(check.exit_code, 1)
-            self.assertIn("unused image 'unused.jpg'", check.output)
-            self.assertIn("--fix", check.output)
-            self.assertEqual(fix.exit_code, 0, fix.output)
-            self.assertIn("Removed:", fix.output)
+            self.assertEqual(fixed.exit_code, 0, fixed.output)
+            self.assertNotIn("Remove 1", fixed.output)
             self.assertFalse(unused_path.exists())
+
+    def test_rejects_directory_input(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            result = self.runner.invoke(
+                app,
+                ["markdown", "check-unused-images", temporary_directory],
+            )
+
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("File", result.output)
+
+    def test_check_reports_when_all_images_are_referenced(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            markdown_path = root / "lesson.md"
+            image_directory = root / "imgs" / "lesson"
+            image_directory.mkdir(parents=True)
+            markdown_path.write_text("![Used](imgs/lesson/used.jpg)", encoding="utf-8")
+            (image_directory / "used.jpg").touch()
+
+            result = self.runner.invoke(
+                app,
+                ["markdown", "check-unused-images", str(markdown_path)],
+            )
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertEqual(result.output, "No unused images found.\n")
 
 
 class MarkdownCalendarTests(unittest.TestCase):

@@ -131,6 +131,10 @@ stt text transcript-to-paragraphs transcript.txt
 Markdown calendars open in the default browser after generation. Pass
 `--no-open` when generating one in an automated workflow.
 
+For each Markdown file, StudyTool checks its matching `imgs/<file-stem>/` folder
+and asks whether to remove any unused images it finds. Answer no to keep them, or
+use `--fix` to remove them without prompting.
+
 ### Convert an ebook
 
 ```shell
