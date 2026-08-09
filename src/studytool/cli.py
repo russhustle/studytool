@@ -5,6 +5,7 @@ import typer
 from .chinese_conversion import simplify_chinese_command
 from .course_builder import build_course_command
 from .epub import convert_epub_command
+from .markdown_calendar import markdown_calendar_command
 from .markdown_images import insert_images_command
 from .markdown_links import format_links_command
 from .pdf_links import extract_pdf_links_command
@@ -12,7 +13,9 @@ from .pdf_markdown import pdf_to_markdown_command
 from .pdf_merge import merge_pdfs_command
 from .pdf_page_numbers import add_page_numbers_command
 from .pdf_text import extract_pdf_text_command
-from .youtube_playlist import playlist_titles_command
+from .text_formatting import double_newlines_command, transcript_to_paragraphs_command
+from .unused_images import check_unused_images_command
+from .youtube_playlist import playlist_table_command, playlist_titles_command
 
 HELP_CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
@@ -62,6 +65,14 @@ pdf_app.command(
 )(extract_pdf_links_command)
 
 markdown_app.command(
+    name="calendar",
+    help="Create a commit calendar for Markdown files.",
+)(markdown_calendar_command)
+markdown_app.command(
+    name="check-unused-images",
+    help="Find or delete unreferenced Markdown images.",
+)(check_unused_images_command)
+markdown_app.command(
     name="format-links",
     help="Turn URLs into titled Markdown links.",
 )(format_links_command)
@@ -71,14 +82,26 @@ markdown_app.command(
 )(insert_images_command)
 
 text_app.command(
+    name="double-newlines",
+    help="Expand blank lines in a text file.",
+)(double_newlines_command)
+text_app.command(
     name="simplify-chinese",
     help="Convert Traditional Chinese text to Simplified Chinese.",
 )(simplify_chinese_command)
+text_app.command(
+    name="transcript-to-paragraphs",
+    help="Remove timestamps and join transcript lines.",
+)(transcript_to_paragraphs_command)
 
 youtube_app.command(
     name="playlist",
     help="Print the titles in a YouTube playlist.",
 )(playlist_titles_command)
+youtube_app.command(
+    name="playlist-table",
+    help="Print a YouTube playlist as a Markdown table.",
+)(playlist_table_command)
 
 # Backward-compatible aliases. They remain callable for scripts created before
 # the hierarchy was introduced, but stay out of the main help screen.

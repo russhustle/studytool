@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from click import unstyle
 from typer.testing import CliRunner
 
 from studytool.cli import app
@@ -177,7 +178,7 @@ class CourseBuilderTests(unittest.TestCase):
         self.assertNotEqual(conflict.exit_code, 0)
         self.assertIn("cannot be used", conflict.output)
         self.assertNotEqual(missing_text.exit_code, 0)
-        self.assertIn("requires --include-text", missing_text.output)
+        self.assertIn("requires --include-text", unstyle(missing_text.output))
         self.assertEqual(missing_path.exit_code, 1)
         self.assertIn("Course folder not found", missing_path.output)
 

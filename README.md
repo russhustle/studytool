@@ -26,6 +26,8 @@ stt
 ├── course                         Build a complete course from slide PDFs
 ├── ebook                          Convert an EPUB to Markdown
 ├── markdown
+│   ├── calendar                   Build an HTML calendar from Markdown commit dates
+│   ├── check-unused-images        Find or delete unreferenced images
 │   ├── format-links               Turn URLs into titled Markdown links
 │   └── insert-images              Replace page numbers with image references
 ├── pdf
@@ -35,9 +37,12 @@ stt
 │   ├── merge                      Merge PDFs in a directory
 │   └── extract-links              Extract links from PDFs in a directory
 ├── text
-│   └── simplify-chinese           Convert Traditional Chinese to Simplified
+│   ├── double-newlines            Expand every blank line
+│   ├── simplify-chinese           Convert Traditional Chinese to Simplified
+│   └── transcript-to-paragraphs   Remove timestamps and join transcript lines
 └── youtube
-    └── playlist                   Print playlist video titles
+    ├── playlist                   Print playlist video titles
+    └── playlist-table             Print a playlist as a Markdown table
 ```
 
 Run `stt --help`, `stt -h`, or `stt <group> -h` to explore the available commands.
@@ -115,8 +120,16 @@ stt markdown format-links https://example.com
 stt markdown format-links --file urls.txt --sort asc
 stt markdown format-links "Read https://example.com and https://arxiv.org/pdf/2001.08361"
 stt markdown insert-images notes.md
+stt markdown check-unused-images chapter-1.md chapter-2.md
+stt markdown check-unused-images --fix chapter-1.md
+stt markdown calendar ./notes --output md_calendar.html
+stt text double-newlines notes.md
 stt text simplify-chinese notes.md
+stt text transcript-to-paragraphs transcript.txt
 ```
+
+Markdown calendars open in the default browser after generation. Pass
+`--no-open` when generating one in an automated workflow.
 
 ### Convert an ebook
 
@@ -133,6 +146,8 @@ extracted images proportionally.
 
 ```shell
 stt youtube playlist "https://youtube.com/playlist?list=..." --limit 50
+stt youtube playlist-table "https://youtube.com/playlist?list=..."
+stt youtube playlist-table "https://youtube.com/playlist?list=..." --limit 50
 ```
 
 ## Migrating old commands

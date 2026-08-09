@@ -1,6 +1,6 @@
 [project]
 name = "studytool"
-version = "0.1.21"
+version = "0.1.22"
 description = "A comprehensive command-line study toolkit for PDF processing, video downloading, and text conversion."
 authors = [{ name = "Sihan A" }]
 license = { text = "MIT" }

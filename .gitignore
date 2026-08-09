@@ -164,3 +164,6 @@ tinyml/*
 assets/*
 .DS_Store
 temp*
+
+# agents
+.agents/
