@@ -2,7 +2,7 @@ import os
 import tempfile
 from pathlib import Path
 
-import fitz
+import pymupdf
 import typer
 
 from .cli_types import PageNumberColor, PageNumberPosition
@@ -39,12 +39,12 @@ def add_page_numbers_to_pdf(
     destination = output_path.resolve()
     destination.parent.mkdir(parents=True, exist_ok=True)
 
-    with fitz.open(source) as document:
+    with pymupdf.open(source) as document:
         total_pages = document.page_count
         for index, page in enumerate(document, start=1):
             scaled_font_size = font_size * (page.rect.height / 540)
             label = f"{index} / {total_pages}"
-            text_width = fitz.get_text_length(label, fontsize=scaled_font_size)
+            text_width = pymupdf.get_text_length(label, fontsize=scaled_font_size)
             margin = page.rect.width * 0.03
             x_coordinate = horizontal_text_position(position, page.rect.width, text_width, margin)
             y_coordinate = page.rect.height * 0.97

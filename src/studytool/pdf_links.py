@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-import fitz  # PyMuPDF
+import pymupdf
 import typer
 from rich.console import Console
 from tqdm import tqdm
@@ -61,7 +61,7 @@ def extract_urls_from_pdf_folder(folder_path: str, output_file: str = "links.md"
 
     for pdf_file in tqdm(pdf_files, desc="Processing PDF files"):
         try:
-            doc = fitz.open(pdf_file)
+            doc = pymupdf.open(pdf_file)
             pdf_urls = []
 
             for page_num in tqdm(range(len(doc)), desc=f"Pages in {pdf_file.name}", leave=False):

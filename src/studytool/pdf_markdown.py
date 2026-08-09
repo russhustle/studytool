@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-import fitz
+import pymupdf
 import typer
 from rich.console import Console
 from tqdm import tqdm
@@ -28,7 +28,7 @@ def pdf_to_markdown(pdf_path: str, output_path: str = None, extract_urls: bool =
     if not pdf_path.exists():
         raise FileNotFoundError(f"PDF file not found: {pdf_path}")
 
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     markdown_content = [f"# {pdf_path.stem}", ""]
     all_urls = []
 

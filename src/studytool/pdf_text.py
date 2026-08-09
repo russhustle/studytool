@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-import fitz
+import pymupdf
 import typer
 
 PdfPath = str | Path
@@ -19,19 +19,19 @@ def clean_selectable_text(text: str) -> str:
 
 def count_pdf_pages(pdf_path: PdfPath) -> int:
     """Return the number of pages in a PDF."""
-    with fitz.open(str(pdf_path)) as document:
+    with pymupdf.open(str(pdf_path)) as document:
         return document.page_count
 
 
 def extract_selectable_page_texts(pdf_path: PdfPath) -> list[str]:
     """Return one lightly cleaned selectable-text value per PDF page."""
-    with fitz.open(str(pdf_path)) as document:
+    with pymupdf.open(str(pdf_path)) as document:
         return [clean_selectable_text(page.get_text()) for page in document]
 
 
 def render_pdf_text(pdf_path: PdfPath, include_page_numbers: bool = False) -> str:
     """Return raw selectable text from every page of a PDF."""
-    with fitz.open(str(pdf_path)) as document:
+    with pymupdf.open(str(pdf_path)) as document:
         parts = []
         for index, page in enumerate(document, start=1):
             text = page.get_text("text")

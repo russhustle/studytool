@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-import fitz
+import pymupdf
 from typer.testing import CliRunner
 
 from studytool.cli import app
@@ -22,7 +22,7 @@ from studytool.pdf_text import (
 
 
 def create_pdf(path: Path, page_texts: list[str]) -> None:
-    document = fitz.open()
+    document = pymupdf.open()
     for text in page_texts:
         page = document.new_page()
         if text:
@@ -110,7 +110,7 @@ class PdfPageNumberTests(unittest.TestCase):
             create_pdf(source, ["", ""])
 
             result = add_page_numbers_to_pdf(source, output, position=PageNumberPosition.RIGHT)
-            with fitz.open(output) as document:
+            with pymupdf.open(output) as document:
                 page_text = [page.get_text() for page in document]
 
         self.assertEqual(result, output.resolve())
