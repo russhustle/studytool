@@ -1,6 +1,6 @@
 [project]
 name = "studytool"
-version = "0.1.20"
+version = "0.1.21"
 description = "A comprehensive command-line study toolkit for PDF processing, video downloading, and text conversion."
 authors = [{ name = "Sihan A" }]
 license = { text = "MIT" }
@@ -25,12 +25,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "black>=23.10.1",
-    "coverage>=7.0",
-    "flake8>=6.1.0",
-    "pre-commit>=3.5.0",
-]
+dev = ["black>=23.10.1", "coverage>=7.0", "flake8>=6.1.0", "pre-commit>=3.5.0"]
 
 [project.scripts]
 stt = "studytool.cli:app"
