@@ -1,8 +1,6 @@
 import typer
 import youtube_dl
 
-app = typer.Typer()
-
 
 def playlist_titles(url: str, number: int = 200) -> None:
     """Print YouTube playlist titles."""
@@ -21,10 +19,16 @@ def playlist_titles(url: str, number: int = 200) -> None:
             print(title)
 
 
-@app.callback(invoke_without_command=True)
-def playlist(
-    playlist: str = typer.Argument(default=None, help="Path to YouTube Playlist URL."),
-    playlist_number: int = typer.Option(default=200, help="Number of videos to extract."),
+def playlist_titles_command(
+    playlist: str = typer.Argument(..., help="YouTube playlist URL."),
+    playlist_number: int = typer.Option(
+        200,
+        "--limit",
+        "-n",
+        "--playlist-number",
+        min=1,
+        help="Maximum number of video titles to print.",
+    ),
 ):
     """Extract video titles from a YouTube playlist.
 

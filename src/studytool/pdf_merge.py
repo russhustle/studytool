@@ -3,8 +3,6 @@ import os
 import typer
 from PyPDF2 import PdfMerger
 
-app = typer.Typer()
-
 
 def merge_pdfs_in_dir(dir_path: str, output_file: str) -> None:
     """Merges all PDF files in a directory into a single PDF file."""
@@ -19,10 +17,15 @@ def merge_pdfs_in_dir(dir_path: str, output_file: str) -> None:
         merger.write(file)
 
 
-@app.callback(invoke_without_command=True)
-def pdfmerge(
-    dir_path: str = typer.Argument(default=None, help="Path to the directory"),
-    output_file: str = typer.Option(default="merged_pdf.pdf", help="Merged PDF"),
+def merge_pdfs_command(
+    dir_path: str = typer.Argument(..., help="Directory containing the PDF files."),
+    output_file: str = typer.Option(
+        "merged_pdf.pdf",
+        "--output",
+        "-o",
+        "--output-file",
+        help="Path for the merged PDF.",
+    ),
 ):
     """Merge all PDF files in a directory into a single PDF file.
 

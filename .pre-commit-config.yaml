@@ -33,6 +33,7 @@ repos:
     hooks:
     - id: interrogate
       args: [-vv, -i, --fail-under=80]
+      files: ^src/studytool/
 
 # shellcheck-py for linting shell files
 -   repo: https://github.com/shellcheck-py/shellcheck-py

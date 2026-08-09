@@ -9,10 +9,9 @@ from rich.progress import track
 from .course_markdown import PageContentOrder, compose_course_markdown
 from .pdf_text import count_pdf_pages, extract_selectable_page_texts
 
-app = typer.Typer()
-
 
 def _write_text_atomic(path: Path, content: str) -> None:
+    """Replace a text file atomically, creating its parent directory first."""
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     try:
@@ -27,7 +26,7 @@ def _write_text_atomic(path: Path, content: str) -> None:
         raise
 
 
-class Slide2md:
+class CourseBuilder:
     """Orchestrate course PDF images, Markdown, and MkDocs navigation."""
 
     def __init__(
@@ -48,23 +47,22 @@ class Slide2md:
         self.page_order = page_order
 
     def validate_course(self) -> None:
+        """Ensure the course and its slides directory exist."""
         if not self.course_folder.is_dir():
             raise ValueError(f"Course folder not found: {self.course_folder}")
         if not self.slides_folder.is_dir():
             raise ValueError(f"Slides folder not found: {self.slides_folder}")
 
     def prepare_output_directories(self) -> None:
+        """Create the output tree and initial course index when needed."""
         self.imgs_folder.mkdir(parents=True, exist_ok=True)
         if not self.index_file.exists():
             _write_text_atomic(self.index_file, "Course Index\n===\n\n")
 
     def discover_pdfs(self) -> list[Path]:
+        """Return course PDFs in a deterministic case-insensitive order."""
         return sorted(
-            (
-                path
-                for path in self.slides_folder.iterdir()
-                if path.is_file() and path.suffix.lower() == ".pdf"
-            ),
+            (path for path in self.slides_folder.iterdir() if path.is_file() and path.suffix.lower() == ".pdf"),
             key=lambda path: path.name.casefold(),
         )
 
@@ -84,6 +82,7 @@ class Slide2md:
             image.save(fp=image_directory / f"{index:03}.jpg")
 
     def ensure_page_images(self, pdf_path: Path, page_count: int) -> tuple[list[Path], bool]:
+        """Return every expected page image, rendering missing images when needed."""
         if page_count <= 0:
             raise ValueError(f"PDF has no pages: {pdf_path}")
 
@@ -112,6 +111,7 @@ class Slide2md:
         _write_text_atomic(self.docs_folder / f"{pdf_path.stem}.md", content)
 
     def process_pdf(self, pdf_path: Path) -> None:
+        """Update the images and Markdown for one course PDF."""
         page_texts = extract_selectable_page_texts(pdf_path) if self.include_text else None
         page_count = len(page_texts) if page_texts is not None else count_pdf_pages(pdf_path)
         image_paths, rendered = self.ensure_page_images(pdf_path, page_count)
@@ -146,16 +146,16 @@ class Slide2md:
         print("Done!")
 
     def update_yaml_only(self) -> None:
+        """Refresh only the course index and MkDocs navigation."""
         self.validate_course()
         self.prepare_output_directories()
         self.update_index_yaml()
 
 
-@app.callback(invoke_without_command=True)
-def course(
+def build_course_command(
     course: str = typer.Argument(default="./", help="Path to the course folder."),
     update_yaml_only: bool = typer.Option(default=False, help="Update MKDocs YAML Only"),
-    dpi: int = typer.Option(default=100, help="DPI for PDF to image conversion"),
+    dpi: int = typer.Option(default=100, min=1, help="DPI for PDF to image conversion"),
     include_text: bool = typer.Option(
         default=False,
         help="Include each PDF page's selectable text in Markdown.",
@@ -171,7 +171,7 @@ def course(
     if not include_text and page_order == PageContentOrder.TEXT_IMAGE:
         raise typer.BadParameter("requires --include-text", param_hint="--page-order")
 
-    converter = Slide2md(
+    converter = CourseBuilder(
         course_folder=course,
         dpi=dpi,
         include_text=include_text,

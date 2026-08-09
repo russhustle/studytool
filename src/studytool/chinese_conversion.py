@@ -1,10 +1,8 @@
 import typer
 from opencc import OpenCC
 
-app = typer.Typer()
 
-
-def convert_trad_to_simp(file_path: str):
+def convert_traditional_to_simplified(file_path: str):
     """
     Reads a Markdown or text file, converts its Traditional Chinese content
     to Simplified Chinese, and saves it back to the same file.
@@ -28,20 +26,14 @@ def convert_trad_to_simp(file_path: str):
         print(f"An error occurred: {e}")
 
 
-@app.callback(invoke_without_command=True)
-def main(
+def simplify_chinese_command(
     file_path: str = typer.Argument(
-        None, help="Path to the Markdown or text file to convert from Traditional to Simplified Chinese."
+        ..., help="Path to the Markdown or text file to convert from Traditional to Simplified Chinese."
     ),
-    ctx: typer.Context = typer.Context,
 ):
     """Convert Traditional Chinese text to Simplified Chinese in a file.
 
     Args:
         file_path: Path to the markdown or text file containing Traditional Chinese text.
     """
-    if file_path is None:
-        typer.echo(ctx.get_help())
-        return
-
-    convert_trad_to_simp(file_path=file_path)
+    convert_traditional_to_simplified(file_path=file_path)

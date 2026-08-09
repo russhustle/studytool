@@ -1,5 +1,5 @@
 init:
-	rm -rf studytool/__pycache__
+	rm -rf src/studytool/__pycache__
 	rm -rf dist
 	find tinyml -not -path "tinyml/slides/*" -delete
 

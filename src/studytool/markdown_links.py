@@ -5,7 +5,7 @@ import requests
 import typer
 from bs4 import BeautifulSoup
 
-app = typer.Typer()
+from .cli_types import SortOrder
 
 
 def get_formatted_link(url: str) -> str:
@@ -55,11 +55,10 @@ def get_formatted_link(url: str) -> str:
         return f"[‼️ {url}]({url})"
 
 
-@app.callback(invoke_without_command=True)
-def formatlinks(
+def format_links_command(
     url: str = typer.Argument(None, help="URL to format as markdown link"),
-    file: str = typer.Option(None, help="Path to file containing URLs (one per line)"),
-    sort: str = typer.Option("asc", help="Sort order: 'asc' (ascending) or 'desc' (descending)"),
+    file: str = typer.Option(None, "--file", "-f", help="Path to a file containing one URL per line."),
+    sort: SortOrder = typer.Option(SortOrder.ASCENDING, help="Sort order for formatted links."),
 ):
     """Format URLs as markdown links with automatic title extraction.
 

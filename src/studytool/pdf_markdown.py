@@ -6,9 +6,9 @@ import typer
 from rich.console import Console
 from tqdm import tqdm
 
-from .link import get_formatted_link
+from .cli_types import SortOrder
+from .markdown_links import get_formatted_link
 
-app = typer.Typer()
 console = Console()
 
 
@@ -78,7 +78,7 @@ def extract_urls_from_text(text: str) -> list:
 
     cleaned_urls = []
     for url in urls:
-        url = re.sub(r'[.,;:!?)\]}>"\']$', "", url)
+        url = re.sub(r'[.,;:!?)\]}>"\']+$', "", url)
         if url.lower().startswith("www."):
             url = "https://" + url
         cleaned_urls.append(url)
@@ -115,12 +115,16 @@ def clean_pdf_text(text: str) -> str:
     return "\n".join(formatted_lines)
 
 
-@app.callback(invoke_without_command=True)
-def pdf2md(
+def pdf_to_markdown_command(
     pdf_path: str = typer.Argument(..., help="Path to the PDF file"),
-    output: str = typer.Option(None, help="Output markdown file path (optional)"),
+    output: str = typer.Option(None, "--output", "-o", help="Output Markdown file path."),
     extract_urls: bool = typer.Option(False, help="Extract URLs from PDF and include in markdown"),
-    url_sort: str = typer.Option("desc", help="Sort order for URLs: 'asc' (ascending) or 'desc' (descending)"),
+    url_sort: SortOrder = typer.Option(
+        SortOrder.DESCENDING,
+        "--sort",
+        "--url-sort",
+        help="Sort order for extracted URLs.",
+    ),
 ):
     """Convert PDF file to markdown format with optional URL extraction.
 

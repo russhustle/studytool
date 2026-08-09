@@ -4,6 +4,8 @@ from pathlib import PurePosixPath
 
 
 class PageContentOrder(str, Enum):
+    """Supported image and selectable-text ordering for a PDF page."""
+
     IMAGE_TEXT = "image-text"
     TEXT_IMAGE = "text-image"
 
@@ -16,9 +18,7 @@ def compose_course_markdown(
 ) -> str:
     """Compose course Markdown with optional text paired with each page image."""
     if page_texts is not None and len(image_paths) != len(page_texts):
-        raise ValueError(
-            f"page image count ({len(image_paths)}) does not match page text count ({len(page_texts)})"
-        )
+        raise ValueError(f"page image count ({len(image_paths)}) does not match page text count ({len(page_texts)})")
 
     blocks = [f"{title}\n==="]
     for index, raw_image_path in enumerate(image_paths):

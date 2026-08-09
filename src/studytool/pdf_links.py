@@ -6,9 +6,9 @@ import typer
 from rich.console import Console
 from tqdm import tqdm
 
-from .link import get_formatted_link
+from .cli_types import SortOrder
+from .markdown_links import get_formatted_link
 
-app = typer.Typer()
 console = Console()
 
 
@@ -26,7 +26,7 @@ def extract_urls_from_text(text: str) -> list:
 
     cleaned_urls = []
     for url in urls:
-        url = re.sub(r'[.,;:!?)\]}>"\']$', "", url)
+        url = re.sub(r'[.,;:!?)\]}>"\']+$', "", url)
         if url.lower().startswith("www."):
             url = "https://" + url
         cleaned_urls.append(url)
@@ -130,11 +130,15 @@ def extract_urls_from_pdf_folder(folder_path: str, output_file: str = "links.md"
     return str(output_path)
 
 
-@app.callback(invoke_without_command=True)
-def pdflinks(
+def extract_pdf_links_command(
     folder_path: str = typer.Argument(..., help="Path to folder containing PDF files"),
-    output: str = typer.Option("links.md", help="Output markdown file name"),
-    url_sort: str = typer.Option("desc", help="Sort order for URLs: 'asc' (ascending) or 'desc' (descending)"),
+    output: str = typer.Option("links.md", "--output", "-o", help="Output Markdown file name."),
+    url_sort: SortOrder = typer.Option(
+        SortOrder.DESCENDING,
+        "--sort",
+        "--url-sort",
+        help="Sort order for extracted URLs.",
+    ),
 ):
     """Extract all URLs from PDF files in a folder and save to markdown.
 

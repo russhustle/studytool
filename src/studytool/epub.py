@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 from ebooklib import epub
 from rich.console import Console
 
-app = typer.Typer()
 console = Console()
 
 
@@ -104,7 +103,7 @@ def save_chapters_as_markdown(chapters, output_dir):
         print(f"Saved chapter: {title} to {filename}")
 
 
-def epub_to_md(epub_path, output_dir):
+def epub_to_markdown(epub_path, output_dir):
     """
     Process an EPUB file and save each chapter as a separate markdown file.
 
@@ -119,7 +118,7 @@ def epub_to_md(epub_path, output_dir):
     print(f"Processing complete. Files saved to {output_dir}")
 
 
-def extract_imgs_from_epub(epub_path, output_dir):
+def extract_images_from_epub(epub_path, output_dir):
     """
     Extract images from an EPUB file and save them to a folder.
 
@@ -172,6 +171,7 @@ def extract_toc(epub_path, output_path=None):
             f.write("=" * 50 + "\n\n")
 
             def write_toc_items(items, level=0):
+                """Write nested ebooklib TOC items with Markdown indentation."""
                 for item in items:
                     if isinstance(item, tuple) and len(item) >= 2:
                         if isinstance(item[0], epub.Link):
@@ -203,10 +203,15 @@ def extract_toc(epub_path, output_path=None):
         return None
 
 
-@app.callback(invoke_without_command=True)
-def ebook2md(
+def convert_epub_command(
     epub_path: str = typer.Argument(..., help="Path to the EPUB file"),
-    output_dir: str = typer.Option(None, help="Output directory for markdown files (optional)"),
+    output_dir: str = typer.Option(
+        None,
+        "--output",
+        "-o",
+        "--output-dir",
+        help="Output directory for Markdown files.",
+    ),
     extract_images: bool = typer.Option(True, help="Extract images from EPUB"),
     generate_toc: bool = typer.Option(True, help="Generate table of contents"),
 ):
@@ -236,12 +241,12 @@ def ebook2md(
             output_dir = Path(output_dir)
 
         console.print("Converting EPUB to markdown...")
-        epub_to_md(str(epub_path), str(output_dir))
+        epub_to_markdown(str(epub_path), str(output_dir))
 
         if extract_images:
             console.print("Extracting images...")
             image_output_dir = output_dir / "assets"
-            extract_imgs_from_epub(str(epub_path), str(image_output_dir))
+            extract_images_from_epub(str(epub_path), str(image_output_dir))
             console.print(f"Images extracted to: {image_output_dir}")
 
         if generate_toc:

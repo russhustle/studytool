@@ -4,10 +4,8 @@ from typing import Optional
 
 import typer
 
-app = typer.Typer()
 
-
-def num2img_path(md_path: str, pattern: Optional[str] = None) -> None:
+def insert_image_paths(md_path: str, pattern: Optional[str] = None) -> None:
     """
     Find and replace numbers in a markdown file with image paths.
 
@@ -65,6 +63,7 @@ def replace_numbers_with_images(content: str, folder: str) -> str:
     """Replace standalone numbers with image references."""
 
     def replace_match(match):
+        """Render one regex match as a zero-padded Markdown image."""
         num = match.group(1)
         padded_num = num.zfill(3)
         return f"\n![{padded_num}](imgs/{folder}/{padded_num}.jpg)\n"
@@ -72,10 +71,9 @@ def replace_numbers_with_images(content: str, folder: str) -> str:
     return re.sub(r"\n(\d{2,3})\n", replace_match, content)
 
 
-@app.callback(invoke_without_command=True)
-def imgpath(
-    md_path: str = typer.Argument(default=None, help="Path to the markdown file"),
-    interval: int = typer.Option(default=10, help="Interval in seconds to rerun the operation"),
+def insert_images_command(
+    md_path: str = typer.Argument(..., help="Path to the Markdown file."),
+    interval: int = typer.Option(default=10, min=1, help="Interval in seconds to rerun the operation"),
     pattern: str = typer.Option(default="、", help="Custom pattern to replace with image paths"),
     once: bool = typer.Option(default=True, help="Run once without continuous monitoring"),
 ):
@@ -92,9 +90,9 @@ def imgpath(
     """
     import time
 
-    num2img_path(md_path=md_path, pattern=pattern)
+    insert_image_paths(md_path=md_path, pattern=pattern)
 
     if not once:
         while True:
             time.sleep(interval)
-            num2img_path(md_path=md_path, pattern=pattern)
+            insert_image_paths(md_path=md_path, pattern=pattern)
